@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
-import { io } from "socket.io-client";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import moment from "moment";
 import { ScrollArea } from "./components/ui/scroll-area";
-
-const host = "http://localhost:3000";
-const socket = io(host);
+import { socket } from "./socket.io/socket";
 
 function App() {
   const [messages, setMessages] = useState<any>([]);
@@ -14,9 +11,18 @@ function App() {
   const [currentInput, setCurrentInput] = useState("");
 
   useEffect(() => {
+    if (!socket.connected) {
+      socket.connect();
+    }
+
     socket.on("message", (data) => {
       setMessages((prev: any) => [...prev, data]);
     });
+
+    return () => {
+      socket.off("message");
+      socket.disconnect();
+    };
   }, []);
 
   const sendMessage = () => {
@@ -31,12 +37,20 @@ function App() {
           Sidebar
         </div>
         <div className="basis-[70%] p-3 flex flex-col">
-          <div className="text-center font-bold text-2xl mb-3">Public Channel</div>
+          <div className="text-center font-bold text-2xl mb-3">
+            Public Channel
+          </div>
           <ScrollArea className="flex-1">
             <div className="flex flex-col gap-3">
               {messages.map((message: any, index: number) => (
                 <div
-                  className="border border-gray-700 p-2 text-white rounded-lg"
+                  className={
+                    "border border-gray-700 p-2 text-white rounded-lg" +
+                      socket.id ===
+                    message.sender
+                      ? "self-end"
+                      : "self-start"
+                  }
                   key={index}
                 >
                   <div>
