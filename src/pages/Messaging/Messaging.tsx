@@ -1,12 +1,20 @@
 import AuthContext from "@/contexts/AuthContext";
 import service from "@/service/service";
 import { socket } from "@/socket.io/socket";
-import { Button, Input } from "antd";
-import moment from "moment";
-import { useContext, useEffect, useState } from "react";
+import { SendOutlined } from "@ant-design/icons";
+import TextArea from "antd/es/input/TextArea";
+import { useContext, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { MessageContainer } from "./MessageContainer";
 
 export default function Messaging() {
   const { user, setUser } = useContext<any>(AuthContext);
+
+  const textAreaRef = useRef<any>();
+
+  const [messages, setMessages] = useState<any>([]);
+
+  const [currentInput, setCurrentInput] = useState("");
 
   useEffect(() => {
     if (!user) {
@@ -15,10 +23,6 @@ export default function Messaging() {
       });
     }
   }, []);
-
-  const [messages, setMessages] = useState<any>([]);
-
-  const [currentInput, setCurrentInput] = useState("");
 
   useEffect(() => {
     if (!socket.connected) {
@@ -35,7 +39,15 @@ export default function Messaging() {
     };
   }, []);
 
+  useEffect(() => {
+    textAreaRef.current.scrollTop = textAreaRef.current.scrollHeight;
+  }, [currentInput]);
+
   const sendMessage = () => {
+    if (!currentInput) {
+      toast("Please enter a message", { position: "top-center" });
+      return;
+    }
     socket.emit("message", {
       content: currentInput,
       timestamp: Date.now(),
@@ -53,47 +65,30 @@ export default function Messaging() {
         <div className="text-center font-bold text-2xl mb-3">
           Public Channel
         </div>
-        <div className="flex flex-col gap-3 flex-1 overflow-auto">
-          {messages.map((message: any, index: number) => (
-            <div
-              className={`border border-gray-700 p-2 text-white rounded-lg
-                  ${
-                    message.sender.username === user.username
-                      ? "self-end"
-                      : "self-start"
-                  }`}
-              key={index}
-            >
-              <div>
-                {message.sender.fullName} -{" "}
-                {moment(message.timestamp).fromNow()}
-              </div>
-              <div>
-                <span>{message.content}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <Input
+        <MessageContainer messages={messages} />
+        <div className="flex gap-2 items-end">
+          <TextArea
+            ref={textAreaRef}
             className="bg-gray-700 p-2 w-full text-base"
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
                 sendMessage();
               }
             }}
             onChange={(e) => {
               setCurrentInput(e.target.value);
+              textAreaRef.current.scrollTop = textAreaRef.current.scrollHeight;
             }}
             value={currentInput}
+            autoSize={{ maxRows: 5 }}
           />
-          <Button
-            type={"primary"}
-            className="hover:bg-[#A5C9CA] text-base h-full"
+          <div
             onClick={sendMessage}
+            className="bg-primary rounded-full py-2 px-3 hover:bg-[#6899d9] transition-all duration-100 cursor-pointer"
           >
-            Send
-          </Button>
+            <SendOutlined />
+          </div>
         </div>
       </div>
     </div>
