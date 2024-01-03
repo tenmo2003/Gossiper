@@ -6,6 +6,7 @@ import TextArea from "antd/es/input/TextArea";
 import { useContext, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { MessageContainer } from "./MessageContainer";
+import Sidebar from "./Sidebar";
 
 export default function Messaging() {
   const { user, setUser } = useContext<any>(AuthContext);
@@ -57,14 +58,9 @@ export default function Messaging() {
   };
 
   return (
-    <div className="w-full h-screen bg-[#1e1e23] text-white flex gap-3">
-      <div className="basis-[30%] border border-gray-700 rounded-lg p-3">
-        Sidebar
-      </div>
-      <div className="basis-[70%] p-3 flex flex-col">
-        <div className="text-center font-bold text-2xl mb-3">
-          Public Channel
-        </div>
+    <div className="w-full h-screen bg-[#1e1e23] text-white flex">
+      <Sidebar />
+      <div className="flex-1 p-3 flex flex-col">
         <MessageContainer messages={messages} />
         <div className="flex gap-2 items-end">
           <TextArea

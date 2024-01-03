@@ -18,8 +18,11 @@ function App() {
               labelColor: "white",
             },
             Input: {
-              colorBorder: "rgb(55 65 81)",
-              colorBgContainer: "rgb(55 65 81)",
+              // colorBorder: "rgb(55 65 81)",
+              // colorBgContainer: "rgb(55 65 81)",
+            },
+            Select: {
+              optionActiveBg: "rgb(66, 92, 130)",
             },
           },
           token: {
@@ -28,14 +31,16 @@ function App() {
             colorText: "white",
             colorIcon: "white",
             colorIconHover: "#4286ed",
+            borderRadius: 4,
+            colorBorder: "rgb(55 65 81)",
+            colorBgContainer: "rgb(55 65 81)",
+            colorBgElevated: "rgb(55 65 81)",
           },
         }}
       >
         <BrowserRouter>
           <Routes>
-            <Route
-              path="/"
-            >
+            <Route path="/">
               <Route index element={<Messaging />} />
               <Route path="/hello" element={<div>hello</div>} />
             </Route>
