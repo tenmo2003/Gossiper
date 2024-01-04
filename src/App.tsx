@@ -18,11 +18,13 @@ function App() {
               labelColor: "white",
             },
             Input: {
-              // colorBorder: "rgb(55 65 81)",
-              // colorBgContainer: "rgb(55 65 81)",
+              colorBorder: "rgb(55 65 81)",
+              colorBgContainer: "rgb(55 65 81)",
             },
             Select: {
               optionActiveBg: "rgb(66, 92, 130)",
+              colorBgContainer: "rgb(55 65 81)",
+              colorBgElevated: "rgb(55 65 81)",
             },
           },
           token: {
@@ -33,8 +35,7 @@ function App() {
             colorIconHover: "#4286ed",
             borderRadius: 4,
             colorBorder: "rgb(55 65 81)",
-            colorBgContainer: "rgb(55 65 81)",
-            colorBgElevated: "rgb(55 65 81)",
+            colorTextPlaceholder: "#c7c7c7",
           },
         }}
       >
