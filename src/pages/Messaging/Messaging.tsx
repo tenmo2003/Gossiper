@@ -7,6 +7,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { MessageContainer } from "./MessageContainer";
 import Sidebar from "./Sidebar";
+import { TEMP_CHAT_PREFIX } from "@/helpers/constants";
 
 export default function Messaging() {
   const { user, setUser } = useContext<any>(AuthContext);
@@ -16,6 +17,8 @@ export default function Messaging() {
   const [messages, setMessages] = useState<any>([]);
 
   const [currentInput, setCurrentInput] = useState("");
+
+  const [currentlyJoinedRoomId, setCurrentlyJoinedRoomId] = useState<string>();
 
   useEffect(() => {
     if (!user) {
@@ -34,6 +37,8 @@ export default function Messaging() {
       setMessages((prev: any) => [...prev, data]);
     });
 
+    socket.on("joined", setCurrentlyJoinedRoomId);
+
     return () => {
       socket.off("message");
       socket.disconnect();
@@ -41,8 +46,13 @@ export default function Messaging() {
   }, []);
 
   useEffect(() => {
+    if (!textAreaRef.current) return;
     textAreaRef.current.scrollTop = textAreaRef.current.scrollHeight;
   }, [currentInput]);
+
+  useEffect(() => {
+    if (!currentlyJoinedRoomId) return;
+  }, [currentlyJoinedRoomId]);
 
   const sendMessage = () => {
     if (!currentInput) {
@@ -50,9 +60,12 @@ export default function Messaging() {
       return;
     }
     socket.emit("message", {
-      content: currentInput,
-      timestamp: Date.now(),
-      sender: user,
+      newMessage: currentlyJoinedRoomId?.startsWith(TEMP_CHAT_PREFIX),
+      message: {
+        content: currentInput,
+        sender: user._id,
+      },
+      chat: currentlyJoinedRoomId,
     });
     setCurrentInput("");
   };
@@ -61,31 +74,36 @@ export default function Messaging() {
     <div className="w-full h-screen bg-[#1e1e23] text-white flex">
       <Sidebar />
       <div className="flex-1 p-3 flex flex-col">
-        <MessageContainer messages={messages} />
-        <div className="flex gap-2 items-end">
-          <TextArea
-            ref={textAreaRef}
-            className="bg-gray-700 p-2 w-full text-base"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-              }
-            }}
-            onChange={(e) => {
-              setCurrentInput(e.target.value);
-              textAreaRef.current.scrollTop = textAreaRef.current.scrollHeight;
-            }}
-            value={currentInput}
-            autoSize={{ maxRows: 5 }}
-          />
-          <div
-            onClick={sendMessage}
-            className="bg-primary rounded-full py-2 px-3 hover:bg-[#6899d9] transition-all duration-100 cursor-pointer"
-          >
-            <SendOutlined />
-          </div>
-        </div>
+        {currentlyJoinedRoomId && (
+          <>
+            <MessageContainer messages={messages} />
+            <div className="flex gap-2 items-end">
+              <TextArea
+                ref={textAreaRef}
+                className="bg-gray-700 p-2 w-full text-base"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                  }
+                }}
+                onChange={(e) => {
+                  setCurrentInput(e.target.value);
+                  textAreaRef.current.scrollTop =
+                    textAreaRef.current.scrollHeight;
+                }}
+                value={currentInput}
+                autoSize={{ maxRows: 5 }}
+              />
+              <div
+                onClick={sendMessage}
+                className="bg-primary rounded-full py-2 px-3 hover:bg-[#6899d9] transition-all duration-100 cursor-pointer"
+              >
+                <SendOutlined />
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

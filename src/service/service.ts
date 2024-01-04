@@ -30,7 +30,7 @@ service.interceptors.response.use(
       }
       return;
     }
-    toast.error(err.response.data.message, { position: "top-center" });
+    toast.error(err.response.data.message || err.response.data.error, { position: "top-center" });
     return Promise.reject(err);
   }
 );
