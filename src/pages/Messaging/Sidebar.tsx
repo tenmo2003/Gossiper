@@ -3,9 +3,10 @@ import { PRIVATE_CHAT_TYPE } from "@/helpers/constants";
 import service from "@/service/service";
 import { socket } from "@/socket.io/socket";
 import { LoadingOutlined } from "@ant-design/icons";
-import { AutoComplete } from "antd";
+import { AutoComplete, Divider } from "antd";
 import { Search } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
+import ChatRoom from "./ChatRoom";
 
 export default function Sidebar() {
   const { user } = useContext<any>(AuthContext);
@@ -147,6 +148,14 @@ export default function Sidebar() {
           )
         }
       />
+      <Divider type="horizontal" orientation="left" className="text-3xl">
+        <span className="text-2xl">Chats</span>
+      </Divider>
+      <div className="flex flex-col gap-3">
+        {chatRooms.map((chatRoom: any) => (
+          <ChatRoom key={chatRoom._id} room={chatRoom} user={user} />
+        ))}
+      </div>
     </div>
   );
 
