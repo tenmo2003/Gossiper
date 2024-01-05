@@ -103,7 +103,7 @@ export default function Sidebar() {
   };
 
   const joinPrivateRoom = (id: string) => {
-    socket.emit("joinPrivate", {
+    socket.emit("joinByUsers", {
       type: PRIVATE_CHAT_TYPE,
       users: [user?._id, id],
     });

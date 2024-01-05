@@ -18,7 +18,9 @@ export default function Messaging() {
 
   const [currentInput, setCurrentInput] = useState("");
 
-  const [currentlyJoinedRoomId, setCurrentlyJoinedRoomId] = useState<string>();
+  const [currentlyJoinedRoom, setCurrentlyJoinedRoom] = useState<any>();
+
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -37,7 +39,7 @@ export default function Messaging() {
       setMessages((prev: any) => [...prev, data]);
     });
 
-    socket.on("joined", setCurrentlyJoinedRoomId);
+    socket.on("joined", setCurrentlyJoinedRoom);
 
     return () => {
       socket.off("message");
@@ -51,8 +53,26 @@ export default function Messaging() {
   }, [currentInput]);
 
   useEffect(() => {
-    if (!currentlyJoinedRoomId) return;
-  }, [currentlyJoinedRoomId]);
+    if (!currentlyJoinedRoom) return;
+
+    if (currentlyJoinedRoom._id.startsWith(TEMP_CHAT_PREFIX)) return;
+
+    setLoading(true);
+    service
+      .get("/chats/messages/" + currentlyJoinedRoom._id, {
+        params: {
+          o: 0,
+          l: 20,
+        },
+      })
+      .then((res) => {
+        setMessages(res.data.results);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  }, [currentlyJoinedRoom]);
 
   const sendMessage = () => {
     if (!currentInput) {
@@ -60,12 +80,12 @@ export default function Messaging() {
       return;
     }
     socket.emit("message", {
-      newMessage: currentlyJoinedRoomId?.startsWith(TEMP_CHAT_PREFIX),
+      newMessage: currentlyJoinedRoom._id?.startsWith(TEMP_CHAT_PREFIX),
       message: {
         content: currentInput,
         sender: user._id,
       },
-      chat: currentlyJoinedRoomId,
+      chat: currentlyJoinedRoom._id,
     });
     setCurrentInput("");
   };
@@ -74,9 +94,9 @@ export default function Messaging() {
     <div className="w-full h-screen bg-[#1e1e23] text-white flex">
       <Sidebar />
       <div className="flex-1 p-3 flex flex-col">
-        {currentlyJoinedRoomId && (
+        {currentlyJoinedRoom && (
           <>
-            <MessageContainer messages={messages} />
+            <MessageContainer chat={currentlyJoinedRoom} messages={messages} />
             <div className="flex gap-2 items-end">
               <TextArea
                 ref={textAreaRef}
