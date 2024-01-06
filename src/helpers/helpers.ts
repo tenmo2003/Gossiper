@@ -9,8 +9,9 @@ export const formatter = (
   // Handle different units and suffixes to customize the output
   switch (unit) {
     case "second":
+      return "Just now";
     case "minute":
-      return value + (unit.startsWith("second") ? "s" : "m");
+      return value + "m";
     case "hour":
       return value + "h";
     case "day":

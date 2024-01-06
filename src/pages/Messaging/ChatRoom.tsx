@@ -1,4 +1,4 @@
-import { PRIVATE_CHAT_TYPE } from "@/helpers/constants";
+import { JOIN_BY_ID_EVENT, PRIVATE_CHAT_TYPE } from "@/helpers/constants";
 import { formatter } from "@/helpers/helpers";
 import { socket } from "@/socket.io/socket";
 import { Avatar } from "antd";
@@ -22,7 +22,7 @@ export default function ChatRoom({ room, user }: any) {
   return (
     <div
       className="flex items-center gap-3"
-      onClick={() => socket.emit("joinById", {
+      onClick={() => socket.emit(JOIN_BY_ID_EVENT, {
         roomId: room._id
       })}
     >
@@ -35,6 +35,7 @@ export default function ChatRoom({ room, user }: any) {
           <span className="text-lg">{roomName}</span>
         </div>
         <div className="text-gray-400 text-base">
+          {room.lastMessage?.sender === user._id ? "You: " : ""}
           <span className="text-ellipsis">{room.lastMessage.content}</span>{" - "}
           <TimeAgo date={room.lastMessage.createdAt} formatter={formatter} />
         </div>

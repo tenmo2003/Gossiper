@@ -7,7 +7,11 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { MessageContainer } from "./MessageContainer";
 import Sidebar from "./Sidebar";
-import { TEMP_CHAT_PREFIX } from "@/helpers/constants";
+import {
+  JOINED_EVENT,
+  MESSAGE_EVENT,
+  TEMP_CHAT_PREFIX,
+} from "@/helpers/constants";
 
 export default function Messaging() {
   const { user, setUser } = useContext<any>(AuthContext);
@@ -31,21 +35,25 @@ export default function Messaging() {
   }, []);
 
   useEffect(() => {
+    if (!user) return;
+
     if (!socket.connected) {
       socket.connect();
     }
 
-    socket.on("message", (data) => {
+    socket.on(MESSAGE_EVENT, (data) => {
       setMessages((prev: any) => [...prev, data]);
     });
 
-    socket.on("joined", setCurrentlyJoinedRoom);
+    socket.emit("self", user._id);
+
+    socket.on(JOINED_EVENT, setCurrentlyJoinedRoom);
 
     return () => {
       socket.off("message");
       socket.disconnect();
     };
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (!textAreaRef.current) return;
@@ -82,13 +90,13 @@ export default function Messaging() {
       toast("Please enter a message", { position: "top-center" });
       return;
     }
-    socket.emit("message", {
+    socket.emit(MESSAGE_EVENT, {
       newMessage: currentlyJoinedRoom._id?.startsWith(TEMP_CHAT_PREFIX),
       message: {
         content: currentInput,
         sender: user._id,
       },
-      chat: currentlyJoinedRoom._id,
+      chatId: currentlyJoinedRoom._id,
     });
     setCurrentInput("");
   };
@@ -99,7 +107,11 @@ export default function Messaging() {
       <div className="flex-1 p-3 flex flex-col">
         {currentlyJoinedRoom && (
           <>
-            <MessageContainer chat={currentlyJoinedRoom} messages={messages} />
+            <MessageContainer
+              chat={currentlyJoinedRoom}
+              messages={messages}
+              loading={loading}
+            />
             <div className="flex gap-2 items-end">
               <TextArea
                 ref={textAreaRef}

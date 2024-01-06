@@ -23,7 +23,7 @@ export default function SignupTab() {
         toast(res.data.message);
       })
       .catch((err) => {
-        toast(err.response.data.message);
+        //add loading
       });
   };
 
@@ -71,8 +71,8 @@ export default function SignupTab() {
         rules={[
           { required: true, message: "Please enter your full name!" },
           {
-            len: 2,
             message: "Please enter at least 2 characters!",
+            min: 2,
           },
         ]}
       >

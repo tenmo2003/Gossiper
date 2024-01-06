@@ -25,12 +25,15 @@ service.interceptors.response.use(
         setTimeout(() => {
           window.location.href = "/authenticate";
         }, 1500);
+        return;
       } else if (err.response.data.message === "No Authorization Header") {
         window.location.href = "/authenticate";
+        return;
       }
-      return;
     }
-    toast.error(err.response.data.message || err.response.data.error, { position: "top-center" });
+    toast.error(err.response.data.message || err.response.data.error, {
+      position: "top-center",
+    });
     return Promise.reject(err);
   }
 );

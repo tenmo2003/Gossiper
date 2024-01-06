@@ -1,5 +1,9 @@
 import AuthContext from "@/contexts/AuthContext";
-import { PRIVATE_CHAT_TYPE } from "@/helpers/constants";
+import {
+  JOIN_BY_USERS_EVENT,
+  PRIVATE_CHAT_TYPE,
+  ROOM_UPDATE_EVENT,
+} from "@/helpers/constants";
 import service from "@/service/service";
 import { socket } from "@/socket.io/socket";
 import { LoadingOutlined } from "@ant-design/icons";
@@ -20,20 +24,37 @@ export default function Sidebar() {
 
   const [queried, setQueried] = useState(false);
 
-  const [chatRooms, setChatRooms] = useState<any>([]);
+  const [chatRooms, setChatRooms] = useState<any[]>([]);
 
   useEffect(() => {
-    service
-      .get("/chats/rooms", {
-        params: {
-          o: 0,
-          l: querySize,
-        },
-      })
-      .then((res) => {
-        setChatRooms(res.data.results);
-      });
-  }, []);
+    if (!chatRooms.length) {
+      service
+        .get("/chats/rooms", {
+          params: {
+            o: 0,
+            l: querySize,
+          },
+        })
+        .then((res) => {
+          setChatRooms(res.data.results);
+        });
+    }
+
+    socket.on(ROOM_UPDATE_EVENT, (data) => {
+      if (chatRooms.some((item) => item._id === data._id)) {
+        //put it on top
+        const newChatRooms = chatRooms.filter((item) => item._id !== data._id);
+        newChatRooms.unshift(data);
+        setChatRooms(newChatRooms);
+        return;
+      }
+      setChatRooms((prev) => [data, ...prev]);
+    });
+
+    return () => {
+      socket.off(ROOM_UPDATE_EVENT);
+    };
+  }, [chatRooms]);
 
   useEffect(() => {
     if (!userQuery) {
@@ -103,7 +124,7 @@ export default function Sidebar() {
   };
 
   const joinPrivateRoom = (other: any) => {
-    socket.emit("joinByUsers", {
+    socket.emit(JOIN_BY_USERS_EVENT, {
       type: PRIVATE_CHAT_TYPE,
       users: [user, other],
     });
