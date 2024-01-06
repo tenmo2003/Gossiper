@@ -3,6 +3,7 @@ import { formatter } from "@/helpers/helpers";
 import { socket } from "@/socket.io/socket";
 import { Avatar } from "antd";
 import TimeAgo from "react-timeago";
+import defaultAvatarUrl from "/src/assets/user.png";
 
 export default function ChatRoom({ room, user }: any) {
   const roomName =
@@ -31,7 +32,7 @@ export default function ChatRoom({ room, user }: any) {
       <Avatar
         size={60}
         className="w-[5rem] h-[5rem] flex-shrink-0"
-        src={roomAvatar ? roomAvatar : "/src/assets/user.png"}
+        src={roomAvatar ? roomAvatar : defaultAvatarUrl}
       />
       <div className="flex flex-col flex-1 justify-between max-w-full">
         <div>
