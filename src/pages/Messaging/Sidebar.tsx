@@ -15,28 +15,38 @@ import ChatRoom from "./ChatRoom";
 export default function Sidebar() {
   const { user } = useContext<any>(AuthContext);
 
-  const querySize = 10;
   const [userQuery, setUserQuery] = useState("");
   const [userQueryResults, setUserQueryResults] = useState<any>([]);
-
-  const [noMoreData, setNoMoreData] = useState(false);
-  const [queryLoading, setQueryLoading] = useState(false);
-
+  
+  const userQuerySize = 10;
+  const [noMoreUsers, setNoMoreUsers] = useState(false);
+  const [userQueryLoading, setUserQueryLoading] = useState(false);
   const [queried, setQueried] = useState(false);
 
   const [chatRooms, setChatRooms] = useState<any[]>([]);
 
+  const chatQuerySize = 15;
+  const [chatsLoading, setChatsLoading] = useState(true);
+  const [noMoreChats, setNoMoreChats] = useState(false);
+
   useEffect(() => {
+    if (!user) return;
+
     if (!chatRooms.length) {
+      setChatsLoading(true);
       service
         .get("/chats/rooms", {
           params: {
             o: 0,
-            l: querySize,
+            l: chatQuerySize,
           },
         })
         .then((res) => {
           setChatRooms(res.data.results);
+          setChatsLoading(false);
+        })
+        .catch(() => {
+          setChatsLoading(false);
         });
     }
 
@@ -54,7 +64,7 @@ export default function Sidebar() {
     return () => {
       socket.off(ROOM_UPDATE_EVENT);
     };
-  }, [chatRooms]);
+  }, [chatRooms, user]);
 
   useEffect(() => {
     if (!userQuery) {
@@ -63,29 +73,29 @@ export default function Sidebar() {
     }
 
     const timer = setTimeout(() => {
-      setNoMoreData(false);
-      setQueryLoading(true);
+      setNoMoreUsers(false);
+      setUserQueryLoading(true);
       service
         .get(`/users`, {
           params: {
             q: userQuery,
             o: 0,
-            l: querySize,
+            l: userQuerySize,
           },
         })
         .then((res) => {
-          setQueryLoading(false);
+          setUserQueryLoading(false);
           const newResults = res.data.results.filter(
             (item: any) => item._id !== user?._id
           );
           setUserQueryResults([...newResults]);
-          if (newResults.length < querySize) {
-            setNoMoreData(true);
+          if (newResults.length < userQuerySize) {
+            setNoMoreUsers(true);
           }
           setQueried(true);
         })
         .catch(() => {
-          setQueryLoading(false);
+          setUserQueryLoading(false);
         });
     }, 200);
 
@@ -96,17 +106,17 @@ export default function Sidebar() {
   }, [userQuery]);
 
   const fetchMoreData = () => {
-    setQueryLoading(true);
+    setUserQueryLoading(true);
     service
       .get(`/users`, {
         params: {
           q: userQuery,
           o: userQueryResults.length,
-          l: querySize,
+          l: userQuerySize,
         },
       })
       .then((res) => {
-        setQueryLoading(false);
+        setUserQueryLoading(false);
         const newResults = res.data.results.filter(
           (item: any) => item._id !== user?._id
         );
@@ -114,12 +124,34 @@ export default function Sidebar() {
           ...userQueryResults,
           ...newResults,
         ]);
-        if (newResults.length < querySize) {
-          setNoMoreData(true);
+        if (newResults.length < userQuerySize) {
+          setNoMoreUsers(true);
         }
       })
       .catch(() => {
-        setQueryLoading(false);
+        setUserQueryLoading(false);
+      });
+  };
+
+  const fetchMoreChats = () => {
+    setChatsLoading(true);
+    service
+      .get("/chats/rooms", {
+        params: {
+          o: chatRooms.length,
+          l: chatQuerySize,
+        },
+      })
+      .then((res) => {
+        setChatsLoading(false);
+        const newResults = res.data.results;
+        setChatRooms((chatRooms: any) => [...chatRooms, ...newResults]);
+        if (newResults.length < userQuerySize) {
+          setNoMoreChats(true);
+        }
+      })
+      .catch(() => {
+        setChatsLoading(false);
       });
   };
 
@@ -131,7 +163,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-[30rem] border-r border-gray-700 py-3">
+    <div className="w-[30rem] border-r border-gray-700 py-3 h-full flex flex-col">
       <div className="px-3">
         <AutoComplete
           className="w-[100%]"
@@ -155,7 +187,7 @@ export default function Sidebar() {
           placeholder="Search for user"
           notFoundContent={
             userQuery.length > 0 &&
-            (queryLoading || !queried ? null : (
+            (userQueryLoading || !queried ? null : (
               <div className="text-center">No results found</div>
             ))
           }
@@ -163,7 +195,7 @@ export default function Sidebar() {
             if (shouldFetchMoreData(e)) fetchMoreData();
           }}
           suffixIcon={
-            queryLoading ? (
+            userQueryLoading ? (
               <LoadingOutlined spin size={16} className="text-white" />
             ) : (
               <Search size={16} className="text-white" />
@@ -174,19 +206,46 @@ export default function Sidebar() {
       <Divider type="horizontal" orientation="left" className="text-3xl px-3">
         <span className="text-2xl">Chats</span>
       </Divider>
-      <div className="flex flex-col w-full">
+
+      <div
+        className="flex flex-col w-full overflow-y-auto overflow-x-hidden"
+        onScroll={(e: any) => {
+          if (shouldFetchMoreChats(e)) fetchMoreChats();
+        }}
+      >
         {chatRooms.map((chatRoom: any) => (
           <ChatRoom key={chatRoom._id} room={chatRoom} user={user} />
         ))}
       </div>
+      {chatsLoading && (
+        <div className="text-3xl text-center">
+          <LoadingOutlined />
+        </div>
+      )}
     </div>
   );
 
   function shouldFetchMoreData(e: any) {
     // already operating
-    if (queryLoading) return false;
+    if (userQueryLoading) return false;
 
-    if (noMoreData) return false;
+    if (noMoreUsers) return false;
+
+    // not at bottom of scroll
+    if (
+      !e.target.scrollTop + e.target.clientHeight >=
+      e.target.scrollHeight - 1
+    )
+      return false;
+
+    return true;
+  }
+
+  function shouldFetchMoreChats(e: any) {
+    // already operating
+    if (chatsLoading) return false;
+
+    if (noMoreChats) return false;
 
     // not at bottom of scroll
     if (
