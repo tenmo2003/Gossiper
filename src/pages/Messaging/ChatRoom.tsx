@@ -21,22 +21,28 @@ export default function ChatRoom({ room, user }: any) {
 
   return (
     <div
-      className="flex items-center gap-3"
-      onClick={() => socket.emit(JOIN_BY_ID_EVENT, {
-        roomId: room._id
-      })}
+      className="flex items-center gap-3 px-3 py-2 hover:bg-gray-700 cursor-pointer w-full"
+      onClick={() =>
+        socket.emit(JOIN_BY_ID_EVENT, {
+          roomId: room._id,
+        })
+      }
     >
       <Avatar
         size={60}
+        className="w-[5rem] h-[5rem] flex-shrink-0"
         src={roomAvatar ? roomAvatar : "/src/assets/user.png"}
       />
-      <div className="flex flex-col justify-between">
+      <div className="flex flex-col flex-1 justify-between max-w-full">
         <div>
           <span className="text-lg">{roomName}</span>
         </div>
-        <div className="text-gray-400 text-base">
-          {room.lastMessage?.sender === user._id ? "You: " : ""}
-          <span className="text-ellipsis">{room.lastMessage.content}</span>{" - "}
+        <div className="text-gray-400 text-base flex gap-1">
+          {room.lastMessage?.sender === user._id && "You:"}
+          <span className="text-ellipsis whitespace-nowrap overflow-hidden max-w-[65%]">
+            {room.lastMessage.content}
+          </span>
+          {"-"}
           <TimeAgo date={room.lastMessage.createdAt} formatter={formatter} />
         </div>
       </div>

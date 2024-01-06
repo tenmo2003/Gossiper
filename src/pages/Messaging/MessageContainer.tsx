@@ -42,39 +42,41 @@ export function MessageContainer({ chat, messages, loading }: any) {
       </div>
       <div
         ref={messageContainerRef}
-        className="flex flex-col gap-1 flex-1 overflow-auto px-2 py-1 mb-2 justify-end"
+        className="flex flex-col gap-1 flex-1 px-2 py-1 mb-2 overflow-auto"
       >
-        {loading ? (
-          <div className="w-full h-full flex items-center justify-center">
-            <LoadingOutlined spin size={30} className="text-white text-3xl" />
-          </div>
-        ) : (
-          messages.map((message: any, index: number) => (
-            <div
-              className={`border border-gray-700 p-2 text-white rounded-lg max-w-[50%]
-                  ${
-                    message.sender === user._id
-                      ? "self-end bg-primary"
-                      : "self-start"
-                  }`}
-              key={index}
-            >
-              {message.sender !== user._id && (
-                <span>
-                  {usersMap?.get(message.sender)?.fullName} -{" "}
-                  <TimeAgo date={message.createdAt} formatter={formatter} />
-                </span>
-              )}
-              <div>
-                <span
-                  dangerouslySetInnerHTML={{
-                    __html: message.content.replace(/\n/g, "<br/>"),
-                  }}
-                ></span>
-              </div>
+        <div className="flex flex-col gap-1 justify-end flex-1">
+          {loading ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <LoadingOutlined spin size={30} className="text-white text-3xl" />
             </div>
-          ))
-        )}
+          ) : (
+            messages.map((message: any, index: number) => (
+              <div
+                className={`border border-gray-700 p-2 text-white rounded-lg max-w-[50%]
+                    ${
+                      message.sender === user._id
+                        ? "self-end bg-primary"
+                        : "self-start"
+                    }`}
+                key={index}
+              >
+                {message.sender !== user._id && (
+                  <span>
+                    {usersMap?.get(message.sender)?.fullName} -{" "}
+                    <TimeAgo date={message.createdAt} formatter={formatter} />
+                  </span>
+                )}
+                <div>
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: message.content.replace(/\n/g, "<br/>"),
+                    }}
+                  ></span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </>
   );

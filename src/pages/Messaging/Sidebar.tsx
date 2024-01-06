@@ -131,48 +131,50 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-[30rem] border-r border-gray-700 p-3">
-      <AutoComplete
-        className="w-[100%]"
-        value={userQuery}
-        onSearch={(value) => {
-          if (value.charAt(Math.max(value.length - 1, 0)) === "\\") return;
-          setUserQuery(value.trimStart());
-        }}
-        options={userQueryResults.map((user: any) => ({
-          value: user._id,
-          label: (
-            <div
-              onClick={() => joinPrivateRoom(user)}
-              className="flex flex-col"
-            >
-              <span>{user.fullName}</span>
-              <span className="text-xs text-[#c7c7c7]">@{user.username}</span>
-            </div>
-          ),
-        }))}
-        placeholder="Search for user"
-        notFoundContent={
-          userQuery.length > 0 &&
-          (queryLoading || !queried ? null : (
-            <div className="text-center">No results found</div>
-          ))
-        }
-        onPopupScroll={(e: any) => {
-          if (shouldFetchMoreData(e)) fetchMoreData();
-        }}
-        suffixIcon={
-          queryLoading ? (
-            <LoadingOutlined spin size={16} className="text-white" />
-          ) : (
-            <Search size={16} className="text-white" />
-          )
-        }
-      />
-      <Divider type="horizontal" orientation="left" className="text-3xl">
+    <div className="w-[30rem] border-r border-gray-700 py-3">
+      <div className="px-3">
+        <AutoComplete
+          className="w-[100%]"
+          value={userQuery}
+          onSearch={(value) => {
+            if (value.charAt(Math.max(value.length - 1, 0)) === "\\") return;
+            setUserQuery(value.trimStart());
+          }}
+          options={userQueryResults.map((user: any) => ({
+            value: user._id,
+            label: (
+              <div
+                onClick={() => joinPrivateRoom(user)}
+                className="flex flex-col"
+              >
+                <span>{user.fullName}</span>
+                <span className="text-xs text-[#c7c7c7]">@{user.username}</span>
+              </div>
+            ),
+          }))}
+          placeholder="Search for user"
+          notFoundContent={
+            userQuery.length > 0 &&
+            (queryLoading || !queried ? null : (
+              <div className="text-center">No results found</div>
+            ))
+          }
+          onPopupScroll={(e: any) => {
+            if (shouldFetchMoreData(e)) fetchMoreData();
+          }}
+          suffixIcon={
+            queryLoading ? (
+              <LoadingOutlined spin size={16} className="text-white" />
+            ) : (
+              <Search size={16} className="text-white" />
+            )
+          }
+        />
+      </div>
+      <Divider type="horizontal" orientation="left" className="text-3xl px-3">
         <span className="text-2xl">Chats</span>
       </Divider>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col w-full">
         {chatRooms.map((chatRoom: any) => (
           <ChatRoom key={chatRoom._id} room={chatRoom} user={user} />
         ))}
