@@ -102,10 +102,10 @@ export default function Sidebar() {
       });
   };
 
-  const joinPrivateRoom = (id: string) => {
+  const joinPrivateRoom = (other: any) => {
     socket.emit("joinByUsers", {
       type: PRIVATE_CHAT_TYPE,
-      users: [user?._id, id],
+      users: [user, other],
     });
   };
 
@@ -122,7 +122,7 @@ export default function Sidebar() {
           value: user._id,
           label: (
             <div
-              onClick={() => joinPrivateRoom(user._id)}
+              onClick={() => joinPrivateRoom(user)}
               className="flex flex-col"
             >
               <span>{user.fullName}</span>

@@ -55,7 +55,10 @@ export default function Messaging() {
   useEffect(() => {
     if (!currentlyJoinedRoom) return;
 
-    if (currentlyJoinedRoom._id.startsWith(TEMP_CHAT_PREFIX)) return;
+    if (currentlyJoinedRoom._id.startsWith(TEMP_CHAT_PREFIX)) {
+      setMessages([]);
+      return;
+    }
 
     setLoading(true);
     service

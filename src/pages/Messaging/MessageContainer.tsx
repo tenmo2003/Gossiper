@@ -8,6 +8,8 @@ export function MessageContainer({ chat, messages }: any) {
 
   const [chatName, setChatName] = React.useState<string>("");
 
+  const [usersMap, setUsersMap] = React.useState<Map<string, any>>();
+
   useEffect(() => {
     setChatName(
       chat.type === PRIVATE_CHAT_TYPE
@@ -16,6 +18,13 @@ export function MessageContainer({ chat, messages }: any) {
           : chat.users[0].fullName
         : chat.groupName
     );
+
+    const map = new Map();
+    chat?.users?.forEach((user: any) => {
+      map.set(user._id, user);
+    });
+
+    setUsersMap(map);
   }, [chat]);
 
   useEffect(() => {
@@ -25,7 +34,7 @@ export function MessageContainer({ chat, messages }: any) {
 
   return (
     <>
-      <div className="text-center font-bold text-2xl mb-3">{chatName}</div>
+      <div className="text-center font-bold text-2xl mb-3">{chatName || chat.tmpWith?.fullName}</div>
       <div
         ref={messageContainerRef}
         className="flex flex-col gap-1 flex-1 overflow-auto px-2 py-1 mb-2 justify-end"
@@ -34,16 +43,16 @@ export function MessageContainer({ chat, messages }: any) {
           <div
             className={`border border-gray-700 p-2 text-white rounded-lg max-w-[50%]
                   ${
-                    message.sender.username === user.username
+                    message.sender === user._id
                       ? "self-end bg-primary"
                       : "self-start"
                   }`}
             key={index}
           >
-            {message.sender.username !== user.username && (
+            {message.sender !== user._id && (
               <span>
-                {message.sender.fullName} -{" "}
-                {moment(message.timestamp).fromNow()}
+                {usersMap?.get(message.sender)?.fullName} -{" "}
+                {moment(message.createdAt).fromNow()}
               </span>
             )}
             <div>
