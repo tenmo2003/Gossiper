@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/open-sans": "^5.0.20",
     "@fontsource/roboto": "^5.0.8",
     "@radix-ui/react-scroll-area": "^1.0.5",
     "@radix-ui/react-slot": "^1.0.2",
@@ -17,11 +18,13 @@
     "axios": "^1.6.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
+    "emoji-picker-react": "^4.6.5",
     "lucide-react": "^0.303.0",
     "moment": "^2.30.1",
     "next-themes": "^0.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-icons": "^4.12.0",
     "react-router-dom": "^6.21.1",
     "react-timeago": "^7.2.0",
     "socket.io-client": "^4.7.2",

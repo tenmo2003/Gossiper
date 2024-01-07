@@ -40,7 +40,7 @@ export default function ChatRoom({ room, user }: any) {
         </div>
         <div className="text-gray-400 text-base flex gap-1">
           {room.lastMessage?.sender === user._id && "You:"}
-          <span className="text-ellipsis whitespace-nowrap overflow-hidden max-w-[65%]">
+          <span className="text-ellipsis whitespace-nowrap overflow-hidden max-w-[60%]">
             {room.lastMessage.content}
           </span>
           {"-"}

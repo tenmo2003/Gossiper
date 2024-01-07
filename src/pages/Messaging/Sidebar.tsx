@@ -168,7 +168,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-[30rem] border-r border-gray-700 py-3 h-full flex flex-col">
+    <div className="w-[30rem] border-r border-gray-700 pt-3 h-full flex flex-col">
       <div className="px-3">
         <AutoComplete
           className="w-[100%]"
@@ -181,7 +181,10 @@ export default function Sidebar() {
             value: user._id,
             label: (
               <div
-                onClick={() => joinPrivateRoom(user)}
+                onClick={() => {
+                  setUserQuery("");
+                  joinPrivateRoom(user);
+                }}
                 className="flex flex-col"
               >
                 <span>{user.fullName}</span>
@@ -213,7 +216,7 @@ export default function Sidebar() {
       </Divider>
 
       <div
-        className="flex flex-col w-full overflow-y-auto overflow-x-hidden"
+        className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden"
         onScroll={(e: any) => {
           if (shouldFetchMoreChats(e)) fetchMoreChats();
         }}
@@ -222,12 +225,12 @@ export default function Sidebar() {
           chatRooms.map((chatRoom: any) => (
             <ChatRoom key={chatRoom._id} room={chatRoom} user={user} />
           ))}
+        {chatsLoading && (
+          <div className="text-3xl text-center">
+            <LoadingOutlined spin />
+          </div>
+        )}
       </div>
-      {chatsLoading && (
-        <div className="text-3xl text-center">
-          <LoadingOutlined />
-        </div>
-      )}
     </div>
   );
 

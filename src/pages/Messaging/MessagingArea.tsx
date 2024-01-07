@@ -6,21 +6,22 @@ import {
 } from "@/helpers/constants";
 import { formatter } from "@/helpers/helpers";
 import { SendOutlined } from "@ant-design/icons";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
+import EmojiPicker from "emoji-picker-react";
+import { BsEmojiNeutral } from "react-icons/bs";
 import TimeAgo from "react-timeago";
-
 import service from "@/service/service";
 import { socket } from "@/socket.io/socket";
 import { LoadingOutlined } from "@ant-design/icons";
 import TextArea from "antd/es/input/TextArea";
 import { toast } from "sonner";
+
 export function MessagingArea({ chat }: any) {
   const { user } = React.useContext<any>(AuthContext);
 
   const messageContainerRef = React.useRef<any>();
   const [messages, setMessages] = useState<any>([]);
 
-  const textAreaRef = useRef<any>();
   const [currentInput, setCurrentInput] = useState("");
 
   const [chatName, setChatName] = React.useState<string>("");
@@ -33,6 +34,8 @@ export function MessagingArea({ chat }: any) {
   const messageQuerySize = 20;
 
   const [initNewChat, setInitNewChat] = useState(false);
+
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
 
   useEffect(() => {
     if (!chat) return;
@@ -148,7 +151,7 @@ export function MessagingArea({ chat }: any) {
           }
         }}
       >
-        <div className="flex flex-col-reverse gap-1 justify-end flex-1">
+        <div className="flex flex-col-reverse gap-1 flex-1">
           {initLoading ? (
             <div className="w-full h-full flex items-center justify-center">
               <LoadingOutlined spin size={30} className="text-white text-3xl" />
@@ -180,11 +183,15 @@ export function MessagingArea({ chat }: any) {
               </div>
             ))
           )}
+          {loading && (
+            <div className="w-full text-center text-3xl">
+              <LoadingOutlined />
+            </div>
+          )}
         </div>
       </div>
       <div className="flex gap-2 items-end">
         <TextArea
-          ref={textAreaRef}
           className="bg-gray-700 p-2 w-full text-base"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -194,12 +201,34 @@ export function MessagingArea({ chat }: any) {
           }}
           onChange={(e) => {
             setCurrentInput(e.target.value);
-            textAreaRef.current.scrollTop = textAreaRef.current.scrollHeight;
           }}
           disabled={initNewChat}
           value={currentInput}
           autoSize={{ maxRows: 5 }}
+          placeholder="Type your message here..."
         />
+        <div className="py-2 px-1 relative">
+          <div
+            className="cursor-pointer hover:text-[#6899d9] transition-all duration-100"
+            onClick={() => setEmojiPickerOpen((prev) => !prev)}
+          >
+            <BsEmojiNeutral className="text-2xl" />
+          </div>
+          {emojiPickerOpen && (
+            <EmojiPicker
+              theme={"dark"}
+              suggestedEmojisMode="recent"
+              previewConfig={{ showPreview: false }}
+              className="absolute top-0 right-0 -translate-x-1 -translate-y-full"
+              onEmojiClick={(emoji: any) => {
+                setCurrentInput((prev) => prev + emoji.emoji);
+                setEmojiPickerOpen(false);
+              }}
+              emojiVersion={"4.0"}
+              emojiStyle="native"
+            />
+          )}
+        </div>
         <div
           onClick={sendMessage}
           className="bg-primary rounded-full py-2 px-3 hover:bg-[#6899d9] transition-all duration-100 cursor-pointer"
