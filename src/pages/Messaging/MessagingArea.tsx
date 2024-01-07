@@ -32,6 +32,8 @@ export function MessagingArea({ chat }: any) {
   const [noMoreData, setNoMoreData] = useState(false);
   const messageQuerySize = 20;
 
+  const [initNewChat, setInitNewChat] = useState(false);
+
   useEffect(() => {
     if (!chat) return;
 
@@ -74,6 +76,8 @@ export function MessagingArea({ chat }: any) {
       map.set(user._id, user);
     });
 
+    setInitNewChat(false);
+
     setUsersMap(map);
 
     socket.on(MESSAGE_EVENT, (data) => {
@@ -98,6 +102,9 @@ export function MessagingArea({ chat }: any) {
       },
       chatId: chat._id,
     });
+    if (chat._id?.startsWith(TEMP_CHAT_PREFIX)) {
+      setInitNewChat(true);
+    }
     setCurrentInput("");
   };
 
@@ -189,6 +196,7 @@ export function MessagingArea({ chat }: any) {
             setCurrentInput(e.target.value);
             textAreaRef.current.scrollTop = textAreaRef.current.scrollHeight;
           }}
+          disabled={initNewChat}
           value={currentInput}
           autoSize={{ maxRows: 5 }}
         />
