@@ -17,13 +17,13 @@ export default function Sidebar() {
 
   const [userQuery, setUserQuery] = useState("");
   const [userQueryResults, setUserQueryResults] = useState<any>([]);
-  
+
   const userQuerySize = 10;
   const [noMoreUsers, setNoMoreUsers] = useState(false);
   const [userQueryLoading, setUserQueryLoading] = useState(false);
   const [queried, setQueried] = useState(false);
 
-  const [chatRooms, setChatRooms] = useState<any[]>([]);
+  const [chatRooms, setChatRooms] = useState<any>(null);
 
   const chatQuerySize = 15;
   const [chatsLoading, setChatsLoading] = useState(true);
@@ -32,7 +32,7 @@ export default function Sidebar() {
   useEffect(() => {
     if (!user) return;
 
-    if (!chatRooms.length) {
+    if (!chatRooms) {
       setChatsLoading(true);
       service
         .get("/chats/rooms", {
@@ -54,20 +54,22 @@ export default function Sidebar() {
     }
 
     socket.on(ROOM_UPDATE_EVENT, (data) => {
-      if (chatRooms.some((item) => item._id === data._id)) {
+      if (chatRooms.find((item: any) => item._id === data._id)) {
         //put it on top
-        const newChatRooms = chatRooms.filter((item) => item._id !== data._id);
+        const newChatRooms = chatRooms.filter(
+          (item: any) => item._id !== data._id
+        );
         newChatRooms.unshift(data);
         setChatRooms(newChatRooms);
         return;
       }
-      setChatRooms((prev) => [data, ...prev]);
+      setChatRooms((prev: any) => [data, ...prev]);
     });
 
     return () => {
       socket.off(ROOM_UPDATE_EVENT);
     };
-  }, [user]);
+  }, [user, chatRooms]);
 
   useEffect(() => {
     if (!userQuery) {
@@ -216,9 +218,10 @@ export default function Sidebar() {
           if (shouldFetchMoreChats(e)) fetchMoreChats();
         }}
       >
-        {chatRooms.map((chatRoom: any) => (
-          <ChatRoom key={chatRoom._id} room={chatRoom} user={user} />
-        ))}
+        {chatRooms &&
+          chatRooms.map((chatRoom: any) => (
+            <ChatRoom key={chatRoom._id} room={chatRoom} user={user} />
+          ))}
       </div>
       {chatsLoading && (
         <div className="text-3xl text-center">

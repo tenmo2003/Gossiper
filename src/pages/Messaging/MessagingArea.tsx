@@ -33,16 +33,6 @@ export function MessagingArea({ chat }: any) {
   const messageQuerySize = 20;
 
   useEffect(() => {
-    socket.on(MESSAGE_EVENT, (data) => {
-      setMessages((prev: any) => [data, ...prev]);
-    });
-
-    return () => {
-      socket.off(MESSAGE_EVENT);
-    };
-  }, []);
-
-  useEffect(() => {
     if (!chat) return;
 
     if (chat._id.startsWith(TEMP_CHAT_PREFIX)) {
@@ -78,7 +68,6 @@ export function MessagingArea({ chat }: any) {
     );
 
     setNoMoreData(false);
-    console.log("newChat");
 
     const map = new Map();
     chat?.users?.forEach((user: any) => {
@@ -86,19 +75,15 @@ export function MessagingArea({ chat }: any) {
     });
 
     setUsersMap(map);
-  }, [chat]);
 
-  useEffect(() => {
-    // if (
-    //   messageContainerRef.current.scrollTop +
-    //     messageContainerRef.current.clientHeight >=
-    //   messageContainerRef.current.scrollHeight * 0.95
-    // ) {
-    //   messageContainerRef.current.scrollTop =
-    //     messageContainerRef.current.scrollHeight;
-    // }
-    console.log(messages);
-  }, [messages]);
+    socket.on(MESSAGE_EVENT, (data) => {
+      setMessages((prev: any) => [data, ...prev]);
+    });
+
+    return () => {
+      socket.off(MESSAGE_EVENT);
+    };
+  }, [chat]);
 
   const sendMessage = () => {
     if (!currentInput) {
@@ -150,8 +135,7 @@ export function MessagingArea({ chat }: any) {
           if (
             !loading &&
             !noMoreData &&
-            e.target.scrollTop <
-              e.target.scrollHeight * 0.1
+            e.target.scrollTop < e.target.scrollHeight * 0.1
           ) {
             fetchMoreData();
           }
