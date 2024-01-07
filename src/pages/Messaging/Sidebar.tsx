@@ -67,7 +67,7 @@ export default function Sidebar() {
     return () => {
       socket.off(ROOM_UPDATE_EVENT);
     };
-  }, [chatRooms, user]);
+  }, [user]);
 
   useEffect(() => {
     if (!userQuery) {
