@@ -44,6 +44,9 @@ export default function Sidebar() {
         .then((res) => {
           setChatRooms(res.data.results);
           setChatsLoading(false);
+          if (res.data.results.length < chatQuerySize) {
+            setNoMoreChats(true);
+          }
         })
         .catch(() => {
           setChatsLoading(false);
