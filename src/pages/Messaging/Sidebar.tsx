@@ -1,5 +1,6 @@
 import AuthContext from "@/contexts/AuthContext";
 import {
+  JOINED_EVENT,
   JOIN_BY_USERS_EVENT,
   PRIVATE_CHAT_TYPE,
   ROOM_UPDATE_EVENT,
@@ -12,7 +13,7 @@ import { Search } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import ChatRoom from "./ChatRoom";
 
-export default function Sidebar() {
+export default function Sidebar({ setCurrentlyJoinedRoom }: any) {
   const { user } = useContext<any>(AuthContext);
 
   const [userQuery, setUserQuery] = useState("");
@@ -53,6 +54,18 @@ export default function Sidebar() {
         });
     }
 
+    socket.on(JOINED_EVENT, (data: any) => {
+      if (data.tmpWith) {
+        setCurrentlyJoinedRoom({
+          ...data,
+        });
+      } else {
+        setCurrentlyJoinedRoom(
+          chatRooms.find((item: any) => item._id === data._id)
+        );
+      }
+    });
+
     socket.on(ROOM_UPDATE_EVENT, (data) => {
       if (chatRooms.find((item: any) => item._id === data._id)) {
         //put it on top
@@ -68,6 +81,7 @@ export default function Sidebar() {
 
     return () => {
       socket.off(ROOM_UPDATE_EVENT);
+      socket.off(JOINED_EVENT);
     };
   }, [user, chatRooms]);
 

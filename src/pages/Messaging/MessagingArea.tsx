@@ -7,7 +7,11 @@ import {
 import { formatter } from "@/helpers/helpers";
 import { SendOutlined } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
-import EmojiPicker from "emoji-picker-react";
+import EmojiPicker, {
+  EmojiStyle,
+  SuggestionMode,
+  Theme,
+} from "emoji-picker-react";
 import { BsEmojiNeutral } from "react-icons/bs";
 import TimeAgo from "react-timeago";
 import service from "@/service/service";
@@ -37,10 +41,14 @@ export function MessagingArea({ chat }: any) {
 
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
 
+  const messageInputRef = React.useRef<any>();
+  const [images, setImages] = useState<any>([]);
+
   useEffect(() => {
     if (!chat) return;
 
     if (chat._id.startsWith(TEMP_CHAT_PREFIX)) {
+      setChatName(chat.tmpWith.fullName);
       setMessages([]);
       return;
     }
@@ -103,6 +111,7 @@ export function MessagingArea({ chat }: any) {
         content: currentInput,
         sender: user._id,
       },
+      images: images,
       chatId: chat._id,
     });
     if (chat._id?.startsWith(TEMP_CHAT_PREFIX)) {
@@ -132,11 +141,23 @@ export function MessagingArea({ chat }: any) {
       });
   };
 
+  useEffect(() => {
+    document.getElementById("messageInput")?.addEventListener("paste", (e) => {
+      if (e.clipboardData?.files?.length) {
+        e.preventDefault();
+        setImages((prev: any) => [...prev, ...e.clipboardData.files]);
+        return;
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    console.log("images >>>", images);
+  }, [images]);
+
   return (
     <>
-      <div className="text-center font-bold text-2xl mb-3">
-        {chatName || chat.tmpWith?.fullName}
-      </div>
+      <div className="text-center font-bold text-2xl mb-3">{chatName}</div>
       <div
         ref={messageContainerRef}
         className="flex flex-col-reverse gap-1 flex-1 px-2 py-1 mb-2 overflow-auto"
@@ -192,6 +213,8 @@ export function MessagingArea({ chat }: any) {
       </div>
       <div className="flex gap-2 items-end">
         <TextArea
+          ref={messageInputRef}
+          id="messageInput"
           className="bg-gray-700 p-2 w-full text-base"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -216,16 +239,18 @@ export function MessagingArea({ chat }: any) {
           </div>
           {emojiPickerOpen && (
             <EmojiPicker
-              theme={"dark"}
-              suggestedEmojisMode="recent"
+              theme={Theme.DARK}
+              suggestedEmojisMode={SuggestionMode.RECENT}
               previewConfig={{ showPreview: false }}
               className="absolute top-0 right-0 -translate-x-1 -translate-y-full"
               onEmojiClick={(emoji: any) => {
-                setCurrentInput((prev) => prev + emoji.emoji);
+                setCurrentInput(
+                  (prev) => prev + "<img src='" + emoji.imageUrl + "' />"
+                );
                 setEmojiPickerOpen(false);
               }}
               emojiVersion={"4.0"}
-              emojiStyle="native"
+              emojiStyle={EmojiStyle.NATIVE}
             />
           )}
         </div>

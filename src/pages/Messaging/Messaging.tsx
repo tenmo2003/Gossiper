@@ -28,8 +28,6 @@ export default function Messaging() {
 
     socket.emit("self", user._id);
 
-    socket.on(JOINED_EVENT, setCurrentlyJoinedRoom);
-
     return () => {
       socket.off(JOINED_EVENT);
       socket.disconnect();
@@ -38,7 +36,7 @@ export default function Messaging() {
 
   return (
     <div className="w-full h-screen bg-[#1e1e23] text-white flex overflow-hidden">
-      <Sidebar />
+      <Sidebar setCurrentlyJoinedRoom={setCurrentlyJoinedRoom} />
       <div className="flex-1 p-3 flex flex-col">
         {currentlyJoinedRoom && <MessagingArea chat={currentlyJoinedRoom} />}
       </div>
