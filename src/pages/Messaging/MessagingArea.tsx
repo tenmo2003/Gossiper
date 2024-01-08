@@ -47,6 +47,8 @@ export function MessagingArea({ chat }: any) {
   useEffect(() => {
     if (!chat) return;
 
+    console.log(chat);
+
     if (chat._id.startsWith(TEMP_CHAT_PREFIX)) {
       setChatName(chat.tmpWith.fullName);
       setMessages([]);
@@ -245,7 +247,7 @@ export function MessagingArea({ chat }: any) {
               className="absolute top-0 right-0 -translate-x-1 -translate-y-full"
               onEmojiClick={(emoji: any) => {
                 setCurrentInput(
-                  (prev) => prev + "<img src='" + emoji.imageUrl + "' />"
+                  (prev) => prev + emoji.emoji
                 );
                 setEmojiPickerOpen(false);
               }}

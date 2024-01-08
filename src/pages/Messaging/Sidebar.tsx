@@ -237,7 +237,12 @@ export default function Sidebar({ setCurrentlyJoinedRoom }: any) {
       >
         {chatRooms &&
           chatRooms.map((chatRoom: any) => (
-            <ChatRoom key={chatRoom._id} room={chatRoom} user={user} />
+            <ChatRoom
+              key={chatRoom._id}
+              room={chatRoom}
+              user={user}
+              setCurrentlyJoinedRoom={setCurrentlyJoinedRoom}
+            />
           ))}
         {chatsLoading && (
           <div className="text-3xl text-center">

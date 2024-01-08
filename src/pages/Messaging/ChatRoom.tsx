@@ -1,11 +1,10 @@
-import { JOIN_BY_ID_EVENT, PRIVATE_CHAT_TYPE } from "@/helpers/constants";
+import { PRIVATE_CHAT_TYPE } from "@/helpers/constants";
 import { formatter } from "@/helpers/helpers";
-import { socket } from "@/socket.io/socket";
 import { Avatar } from "antd";
 import TimeAgo from "react-timeago";
 import defaultAvatarUrl from "/src/assets/user.png";
 
-export default function ChatRoom({ room, user }: any) {
+export default function ChatRoom({ room, user, setCurrentlyJoinedRoom }: any) {
   const roomName =
     room.type === PRIVATE_CHAT_TYPE
       ? room.users[0]._id === user._id
@@ -23,11 +22,9 @@ export default function ChatRoom({ room, user }: any) {
   return (
     <div
       className="flex items-center gap-3 px-3 py-2 hover:bg-gray-700 cursor-pointer w-full"
-      onClick={() =>
-        socket.emit(JOIN_BY_ID_EVENT, {
-          roomId: room._id,
-        })
-      }
+      onClick={() => {
+        setCurrentlyJoinedRoom(room);
+      }}
     >
       <Avatar
         size={60}

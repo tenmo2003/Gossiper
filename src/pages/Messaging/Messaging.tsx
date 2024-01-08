@@ -26,8 +26,6 @@ export default function Messaging() {
       socket.connect();
     }
 
-    socket.emit("self", user._id);
-
     return () => {
       socket.off(JOINED_EVENT);
       socket.disconnect();
