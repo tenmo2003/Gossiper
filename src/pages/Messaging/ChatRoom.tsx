@@ -27,11 +27,11 @@ export default function ChatRoom({ room, user }: any) {
 
   return (
     <div
-      className={`flex items-center gap-3 px-3 py-2 hover:bg-gray-700 cursor-pointer w-full ${
-        currentlyJoinedRoom &&
-        currentlyJoinedRoom._id === room._id &&
-        "bg-gray-800"
-      }`}
+      className={`flex items-center gap-3 px-3 py-2 cursor-pointer w-full ${
+        currentlyJoinedRoom && currentlyJoinedRoom._id === room._id
+          ? "bg-[#1d3354]"
+          : "hover:bg-gray-700"
+      } transition-all duration-100`}
       onClick={() => {
         setCurrentlyJoinedRoom(room);
         socket.emit(JOIN_BY_ID_EVENT, { roomId: room._id });
