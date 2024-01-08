@@ -12,9 +12,12 @@ import { AutoComplete, Divider } from "antd";
 import { Search } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import ChatRoom from "./ChatRoom";
+import CurrentRoomContext from "@/contexts/CurrentRoomContext";
 
-export default function Sidebar({ setCurrentlyJoinedRoom }: any) {
+export default function Sidebar() {
   const { user } = useContext<any>(AuthContext);
+
+  const { setCurrentlyJoinedRoom } = useContext<any>(CurrentRoomContext);
 
   const [userQuery, setUserQuery] = useState("");
   const [userQueryResults, setUserQueryResults] = useState<any>([]);
@@ -237,12 +240,7 @@ export default function Sidebar({ setCurrentlyJoinedRoom }: any) {
       >
         {chatRooms &&
           chatRooms.map((chatRoom: any) => (
-            <ChatRoom
-              key={chatRoom._id}
-              room={chatRoom}
-              user={user}
-              setCurrentlyJoinedRoom={setCurrentlyJoinedRoom}
-            />
+            <ChatRoom key={chatRoom._id} room={chatRoom} user={user} />
           ))}
         {chatsLoading && (
           <div className="text-3xl text-center">

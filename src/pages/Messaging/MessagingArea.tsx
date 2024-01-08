@@ -19,9 +19,11 @@ import { socket } from "@/socket.io/socket";
 import { LoadingOutlined } from "@ant-design/icons";
 import TextArea from "antd/es/input/TextArea";
 import { toast } from "sonner";
+import CurrentRoomContext from "@/contexts/CurrentRoomContext";
 
-export function MessagingArea({ chat }: any) {
+export function MessagingArea() {
   const { user } = React.useContext<any>(AuthContext);
+  const { currentlyJoinedRoom } = React.useContext<any>(CurrentRoomContext);
 
   const messageContainerRef = React.useRef<any>();
   const [messages, setMessages] = useState<any>([]);
@@ -45,19 +47,19 @@ export function MessagingArea({ chat }: any) {
   const [images, setImages] = useState<any>([]);
 
   useEffect(() => {
-    if (!chat) return;
+    if (!currentlyJoinedRoom) return;
 
-    console.log(chat);
+    console.log(currentlyJoinedRoom);
 
-    if (chat._id.startsWith(TEMP_CHAT_PREFIX)) {
-      setChatName(chat.tmpWith.fullName);
+    if (currentlyJoinedRoom._id.startsWith(TEMP_CHAT_PREFIX)) {
+      setChatName(currentlyJoinedRoom.tmpWith.fullName);
       setMessages([]);
       return;
     }
 
     setInitLoading(true);
     service
-      .get("/chats/messages/" + chat._id, {
+      .get("/chats/messages/" + currentlyJoinedRoom._id, {
         params: {
           o: 0,
           l: messageQuerySize,
@@ -75,17 +77,17 @@ export function MessagingArea({ chat }: any) {
       });
 
     setChatName(
-      chat.type === PRIVATE_CHAT_TYPE
-        ? chat.users[0]._id === user._id
-          ? chat.users[1].fullName
-          : chat.users[0].fullName
-        : chat.groupName
+      currentlyJoinedRoom.type === PRIVATE_CHAT_TYPE
+        ? currentlyJoinedRoom.users[0]._id === user._id
+          ? currentlyJoinedRoom.users[1].fullName
+          : currentlyJoinedRoom.users[0].fullName
+        : currentlyJoinedRoom.groupName
     );
 
     setNoMoreData(false);
 
     const map = new Map();
-    chat?.users?.forEach((user: any) => {
+    currentlyJoinedRoom?.users?.forEach((user: any) => {
       map.set(user._id, user);
     });
 
@@ -100,7 +102,7 @@ export function MessagingArea({ chat }: any) {
     return () => {
       socket.off(MESSAGE_EVENT);
     };
-  }, [chat]);
+  }, [currentlyJoinedRoom]);
 
   const sendMessage = () => {
     if (!currentInput) {
@@ -108,15 +110,15 @@ export function MessagingArea({ chat }: any) {
       return;
     }
     socket.emit(MESSAGE_EVENT, {
-      newMessage: chat._id?.startsWith(TEMP_CHAT_PREFIX),
+      newMessage: currentlyJoinedRoom._id?.startsWith(TEMP_CHAT_PREFIX),
       message: {
         content: currentInput,
         sender: user._id,
       },
       images: images,
-      chatId: chat._id,
+      chatId: currentlyJoinedRoom._id,
     });
-    if (chat._id?.startsWith(TEMP_CHAT_PREFIX)) {
+    if (currentlyJoinedRoom._id?.startsWith(TEMP_CHAT_PREFIX)) {
       setInitNewChat(true);
     }
     setCurrentInput("");
@@ -125,7 +127,7 @@ export function MessagingArea({ chat }: any) {
   const fetchMoreData = () => {
     setLoading(true);
     service
-      .get("/chats/messages/" + chat._id, {
+      .get("/chats/messages/" + currentlyJoinedRoom._id, {
         params: {
           o: messages.length,
           l: messageQuerySize,

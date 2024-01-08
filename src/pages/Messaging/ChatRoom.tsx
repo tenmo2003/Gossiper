@@ -1,10 +1,16 @@
-import { PRIVATE_CHAT_TYPE } from "@/helpers/constants";
+import { JOIN_BY_ID_EVENT, PRIVATE_CHAT_TYPE } from "@/helpers/constants";
 import { formatter } from "@/helpers/helpers";
 import { Avatar } from "antd";
 import TimeAgo from "react-timeago";
 import defaultAvatarUrl from "/src/assets/user.png";
+import { socket } from "@/socket.io/socket";
+import CurrentRoomContext from "@/contexts/CurrentRoomContext";
+import { useContext } from "react";
 
-export default function ChatRoom({ room, user, setCurrentlyJoinedRoom }: any) {
+export default function ChatRoom({ room, user }: any) {
+  const { currentlyJoinedRoom, setCurrentlyJoinedRoom } =
+    useContext(CurrentRoomContext);
+
   const roomName =
     room.type === PRIVATE_CHAT_TYPE
       ? room.users[0]._id === user._id
@@ -21,9 +27,14 @@ export default function ChatRoom({ room, user, setCurrentlyJoinedRoom }: any) {
 
   return (
     <div
-      className="flex items-center gap-3 px-3 py-2 hover:bg-gray-700 cursor-pointer w-full"
+      className={`flex items-center gap-3 px-3 py-2 hover:bg-gray-700 cursor-pointer w-full ${
+        currentlyJoinedRoom &&
+        currentlyJoinedRoom._id === room._id &&
+        "bg-gray-800"
+      }`}
       onClick={() => {
         setCurrentlyJoinedRoom(room);
+        socket.emit(JOIN_BY_ID_EVENT, { roomId: room._id });
       }}
     >
       <Avatar
