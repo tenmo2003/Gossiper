@@ -239,22 +239,20 @@ export function MessagingArea({ chat }: any) {
           >
             <BsEmojiNeutral className="text-2xl" />
           </div>
-          {emojiPickerOpen && (
+          {emojiPickerOpen ? (
             <EmojiPicker
               theme={Theme.DARK}
               suggestedEmojisMode={SuggestionMode.RECENT}
               previewConfig={{ showPreview: false }}
               className="absolute top-0 right-0 -translate-x-1 -translate-y-full"
               onEmojiClick={(emoji: any) => {
-                setCurrentInput(
-                  (prev) => prev + emoji.emoji
-                );
+                setCurrentInput((prev) => prev + emoji.emoji);
                 setEmojiPickerOpen(false);
               }}
               emojiVersion={"4.0"}
               emojiStyle={EmojiStyle.NATIVE}
             />
-          )}
+          ) : null}
         </div>
         <div
           onClick={sendMessage}
