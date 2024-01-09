@@ -1,25 +1,21 @@
 import AuthContext from "@/contexts/AuthContext";
+import CurrentRoomContext from "@/contexts/CurrentRoomContext";
 import {
   MESSAGE_EVENT,
   PRIVATE_CHAT_TYPE,
   TEMP_CHAT_PREFIX,
 } from "@/helpers/constants";
 import { formatter } from "@/helpers/helpers";
-import { SendOutlined } from "@ant-design/icons";
-import React, { useEffect, useState } from "react";
-import EmojiPicker, {
-  EmojiStyle,
-  SuggestionMode,
-  Theme,
-} from "emoji-picker-react";
-import { BsEmojiNeutral } from "react-icons/bs";
-import TimeAgo from "react-timeago";
 import service from "@/service/service";
 import { socket } from "@/socket.io/socket";
-import { LoadingOutlined } from "@ant-design/icons";
+import { LoadingOutlined, SendOutlined } from "@ant-design/icons";
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
 import TextArea from "antd/es/input/TextArea";
+import React, { useEffect, useState } from "react";
+import { BsEmojiNeutral } from "react-icons/bs";
+import TimeAgo from "react-timeago";
 import { toast } from "sonner";
-import CurrentRoomContext from "@/contexts/CurrentRoomContext";
 
 export function MessagingArea() {
   const { user } = React.useContext<any>(AuthContext);
@@ -237,22 +233,31 @@ export function MessagingArea() {
         <div className="py-2 px-1 relative">
           <div
             className="cursor-pointer hover:text-[#6899d9] transition-all duration-100"
-            onClick={() => setEmojiPickerOpen((prev) => !prev)}
+            onClick={() =>
+              setTimeout(() => {
+                if (!emojiPickerOpen) {
+                  setEmojiPickerOpen(true);
+                }
+              })
+            }
           >
             <BsEmojiNeutral className="text-2xl" />
           </div>
           {emojiPickerOpen && (
             <div className="absolute top-0 right-0 -translate-x-1 -translate-y-full">
-              <EmojiPicker
-                theme={Theme.DARK}
-                suggestedEmojisMode={SuggestionMode.RECENT}
-                previewConfig={{ showPreview: false }}
-                onEmojiClick={(emoji: any) => {
-                  setCurrentInput((prev) => prev + emoji.emoji);
-                  setEmojiPickerOpen(false);
+              <Picker
+                data={data}
+                onEmojiSelect={(emoji: any) => {
+                  console.log(emoji);
+                  setCurrentInput((prev) => prev + emoji.native);
                 }}
-                emojiVersion={"4.0"}
-                emojiStyle={EmojiStyle.NATIVE}
+                onClickOutside={() => {
+                  setEmojiPickerOpen((prev) => !prev);
+                }}
+                theme="dark"
+                skinTonePosition="search"
+                emojiSize={30}
+                navPosition="bottom"
               />
             </div>
           )}
