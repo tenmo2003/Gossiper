@@ -171,6 +171,7 @@ export function MessagingArea() {
             fetchMoreData();
           }
         }}
+        onClick={() => messageInputRef.current?.focus()}
       >
         <div className="flex flex-col-reverse gap-1 flex-1">
           {initLoading ? (
@@ -180,7 +181,7 @@ export function MessagingArea() {
           ) : (
             messages.map((message: any, index: number) => (
               <div
-                className={`border border-gray-700 p-2 text-white rounded-lg max-w-[50%]
+                className={`border border-gray-700 p-2 text-lg text-white rounded-lg max-w-[50%]
                     ${
                       message.sender === user._id
                         ? "self-end bg-primary"
@@ -215,7 +216,7 @@ export function MessagingArea() {
         <TextArea
           ref={messageInputRef}
           id="messageInput"
-          className="bg-gray-700 p-2 w-full text-base"
+          className="bg-gray-700 p-2 w-full text-lg"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
