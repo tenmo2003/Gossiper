@@ -2,6 +2,7 @@ import AuthContext from "@/contexts/AuthContext";
 import CurrentRoomContext from "@/contexts/CurrentRoomContext";
 import {
   HENTAI_PREDICTION,
+  IMAGE_MESSAGE_TYPE,
   MESSAGE_EVENT,
   PORN_PREDICTION,
   PRIVATE_CHAT_TYPE,
@@ -202,7 +203,7 @@ export function MessagingArea({ model }: any) {
         return;
       }
     });
-  }, [images, assessImage]);
+  }, [images]);
 
   return (
     <>
@@ -235,7 +236,9 @@ export function MessagingArea({ model }: any) {
                       message.sender === user._id
                         ? "self-end bg-primary"
                         : "self-start"
-                    }`}
+                    } ${
+                  message.type === IMAGE_MESSAGE_TYPE && "bg-transparent"
+                }`}
                 key={index}
               >
                 {message.type === TEXT_MESSAGE_TYPE ? (
