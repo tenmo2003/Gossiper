@@ -10,6 +10,8 @@ import { useMediaQuery } from "react-responsive";
 import { MenuOutlined } from "@ant-design/icons";
 import Drawer from "react-modern-drawer";
 import "react-modern-drawer/dist/index.css";
+import * as nsfwjs from "nsfwjs";
+import * as tf from "@tensorflow/tfjs";
 
 export default function Messaging() {
   const { user, setUser } = useContext<any>(AuthContext);
@@ -18,12 +20,23 @@ export default function Messaging() {
 
   const [sidebarOpen, setSidebarOpen] = useState<any>(true);
 
+  const [model, setModel] = useState<any>(null);
+
+  const loadModel = async () => {
+    const model = await nsfwjs.load();
+    setModel(model);
+    console.log("LOADED MODEL");
+  };
+
   useEffect(() => {
     if (!user) {
       service.get("/users/me").then((res) => {
         setUser(res.data.results);
       });
     }
+    tf.ready().then(() => {
+      loadModel();
+    });
   }, []);
 
   useEffect(() => {
@@ -66,13 +79,15 @@ export default function Messaging() {
         </Drawer>
       )}
       <div className="flex-1 w-full p-3 pr-0 flex flex-col relative">
-        <div
-          className="absolute top-0 left-0 p-3 text-xl cursor-pointer"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-        >
-          <MenuOutlined />
-        </div>
-        {currentlyJoinedRoom && <MessagingArea />}
+        {!isDesktopOrLaptop && (
+          <div
+            className="absolute top-0 left-0 p-3 text-xl cursor-pointer"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            <MenuOutlined />
+          </div>
+        )}
+        {currentlyJoinedRoom && <MessagingArea model={model} />}
       </div>
     </div>
   );

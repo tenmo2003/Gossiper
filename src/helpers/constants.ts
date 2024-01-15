@@ -11,3 +11,6 @@ export const ROOM_UPDATE_EVENT = "roomUpdate";
 
 export const TEXT_MESSAGE_TYPE = "text";
 export const IMAGE_MESSAGE_TYPE = "image";
+
+export const HENTAI_PREDICTION = "Hentai";
+export const PORN_PREDICTION = "Porn";

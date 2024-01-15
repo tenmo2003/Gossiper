@@ -1,7 +1,9 @@
 import AuthContext from "@/contexts/AuthContext";
 import CurrentRoomContext from "@/contexts/CurrentRoomContext";
 import {
+  HENTAI_PREDICTION,
   MESSAGE_EVENT,
+  PORN_PREDICTION,
   PRIVATE_CHAT_TYPE,
   TEMP_CHAT_PREFIX,
   TEXT_MESSAGE_TYPE,
@@ -14,12 +16,14 @@ import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 import { Image } from "antd";
 import TextArea from "antd/es/input/TextArea";
+import { XCircle } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { BsEmojiNeutral } from "react-icons/bs";
 import TimeAgo from "react-timeago";
 import { toast } from "sonner";
+import * as tf from "@tensorflow/tfjs";
 
-export function MessagingArea() {
+export function MessagingArea({ model }: any) {
   const { user } = React.useContext<any>(AuthContext);
   const { currentlyJoinedRoom } = React.useContext<any>(CurrentRoomContext);
 
@@ -43,6 +47,7 @@ export function MessagingArea() {
 
   const messageInputRef = React.useRef<any>();
   const [images, setImages] = useState<any>([]);
+  const predictionThreshold = 0.7;
 
   useEffect(() => {
     if (!currentlyJoinedRoom) return;
@@ -106,7 +111,7 @@ export function MessagingArea() {
 
   const sendMessage = () => {
     if (!currentInput && !images.length) {
-      toast("Please enter a message", { position: "top-center" });
+      toast("Please enter a message");
       return;
     }
     socket.emit(MESSAGE_EVENT, {
@@ -146,11 +151,31 @@ export function MessagingArea() {
       });
   };
 
+  const assessImage = async (image: any) => {
+    if (model !== null) {
+      const img = new window.Image();
+      img.src = URL.createObjectURL(image);
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
+      // Convert the image to a tensor
+      const imageTensor = tf.browser.fromPixels(img);
+
+      // Classify the image
+      const prediction = await model.classify(imageTensor);
+      tf.dispose(imageTensor);
+
+      // revoke the object URL after the image has been loaded and processed
+      URL.revokeObjectURL(img.src);
+
+      return prediction;
+    }
+  };
+
   useEffect(() => {
     document.getElementById("messageInput")?.addEventListener("paste", (e) => {
       if (e.clipboardData?.files?.length) {
         e.preventDefault();
-        console.log(e.clipboardData.files.length);
         setImages((prev: any) => [...prev, ...e.clipboardData.files]);
         return;
       }
@@ -164,8 +189,20 @@ export function MessagingArea() {
   }, []);
 
   useEffect(() => {
-    console.log("images >>>", images);
-  }, [images]);
+    if (!images.length) return;
+    assessImage(images[images.length - 1]).then((prediction) => {
+      console.log("prediction >>>", prediction);
+      if (
+        (prediction[0].className === HENTAI_PREDICTION ||
+          prediction[0].className === PORN_PREDICTION) &&
+        prediction[0].probability > predictionThreshold
+      ) {
+        toast("NSFW content detected");
+        setImages((prev: any) => prev.slice(0, -1));
+        return;
+      }
+    });
+  }, [images, assessImage]);
 
   return (
     <>
@@ -223,7 +260,10 @@ export function MessagingArea() {
                   </div>
                 ) : (
                   <div>
-                    <Image src={message.content} />
+                    <Image
+                      src={message.content}
+                      className="max-w-[20rem] max-h-[20rem] object-cover"
+                    />
                   </div>
                 )}
               </div>
@@ -237,24 +277,53 @@ export function MessagingArea() {
         </div>
       </div>
       <div className="flex gap-2 items-end pr-3">
-        <TextArea
-          ref={messageInputRef}
-          id="messageInput"
-          className="bg-gray-700 p-2 w-full text-lg"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              sendMessage();
-            }
-          }}
-          onChange={(e) => {
-            setCurrentInput(e.target.value);
-          }}
-          disabled={initNewChat}
-          value={currentInput}
-          autoSize={{ maxRows: 5 }}
-          placeholder="Type your message here..."
-        />
+        <div className="flex-1 relative">
+          {images.length > 0 && (
+            <div className="flex overflow-x-auto p-2 pb-0 bg-gray-700 rounded-t-[4px] gap-2">
+              {images.map((image: any, index: number) => (
+                <div className="flex-shrink-0 relative" key={index}>
+                  <Image
+                    src={URL.createObjectURL(image)}
+                    key={index}
+                    width={"8rem"}
+                    height={"8rem"}
+                    className="object-center object-cover"
+                  />
+                  <div
+                    className="absolute right-0 top-0 cursor-pointer"
+                    onClick={() =>
+                      setImages((prev: any) =>
+                        prev.filter((item: any) => item !== image)
+                      )
+                    }
+                  >
+                    <XCircle />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <TextArea
+            ref={messageInputRef}
+            id="messageInput"
+            className={`w-full bg-gray-700 p-2 text-lg m-0 ${
+              images.length > 0 && "rounded-t-none"
+            }`}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+              }
+            }}
+            onChange={(e) => {
+              setCurrentInput(e.target.value);
+            }}
+            disabled={initNewChat}
+            value={currentInput}
+            autoSize={{ maxRows: 5 }}
+            placeholder="Type your message here..."
+          />
+        </div>
         <div className="py-2 px-1 relative">
           <div
             className="cursor-pointer hover:text-[#6899d9] transition-all duration-100"

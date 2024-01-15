@@ -21,7 +21,7 @@ service.interceptors.response.use(
     if (err.response.status === 401) {
       if (err.response.data.message === "Session Expired") {
         localStorage.removeItem("token");
-        toast.error("Session expired", { position: "top-center" });
+        toast.error("Session expired");
         setTimeout(() => {
           window.location.href = "/authenticate";
         }, 1500);
