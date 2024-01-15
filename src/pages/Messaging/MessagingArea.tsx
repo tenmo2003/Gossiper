@@ -4,6 +4,7 @@ import {
   MESSAGE_EVENT,
   PRIVATE_CHAT_TYPE,
   TEMP_CHAT_PREFIX,
+  TEXT_MESSAGE_TYPE,
 } from "@/helpers/constants";
 import { formatter } from "@/helpers/helpers";
 import service from "@/service/service";
@@ -11,6 +12,7 @@ import { socket } from "@/socket.io/socket";
 import { LoadingOutlined, SendOutlined } from "@ant-design/icons";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
+import { Image } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import React, { useEffect, useState } from "react";
 import { BsEmojiNeutral } from "react-icons/bs";
@@ -45,13 +47,15 @@ export function MessagingArea() {
   useEffect(() => {
     if (!currentlyJoinedRoom) return;
 
-    console.log(currentlyJoinedRoom);
-
     if (currentlyJoinedRoom._id.startsWith(TEMP_CHAT_PREFIX)) {
       setChatName(currentlyJoinedRoom.tmpWith.fullName);
       setMessages([]);
+      setImages([]);
       return;
     }
+
+    setCurrentInput("");
+    setImages([]);
 
     setInitLoading(true);
     service
@@ -101,7 +105,7 @@ export function MessagingArea() {
   }, [currentlyJoinedRoom]);
 
   const sendMessage = () => {
-    if (!currentInput) {
+    if (!currentInput && !images.length) {
       toast("Please enter a message", { position: "top-center" });
       return;
     }
@@ -110,14 +114,15 @@ export function MessagingArea() {
       message: {
         content: currentInput,
         sender: user._id,
+        images: images,
       },
-      images: images,
       chatId: currentlyJoinedRoom._id,
     });
     if (currentlyJoinedRoom._id?.startsWith(TEMP_CHAT_PREFIX)) {
       setInitNewChat(true);
     }
     setCurrentInput("");
+    setImages([]);
   };
 
   const fetchMoreData = () => {
@@ -145,10 +150,17 @@ export function MessagingArea() {
     document.getElementById("messageInput")?.addEventListener("paste", (e) => {
       if (e.clipboardData?.files?.length) {
         e.preventDefault();
+        console.log(e.clipboardData.files.length);
         setImages((prev: any) => [...prev, ...e.clipboardData.files]);
         return;
       }
     });
+
+    return () => {
+      document
+        .getElementById("messageInput")
+        ?.removeEventListener("paste", () => {});
+    };
   }, []);
 
   useEffect(() => {
@@ -181,7 +193,7 @@ export function MessagingArea() {
           ) : (
             messages.map((message: any, index: number) => (
               <div
-                className={`border border-gray-700 p-2 text-lg text-white rounded-lg max-w-[50%]
+                className={`border border-gray-700 text-lg text-white rounded-lg max-w-[65%]
                     ${
                       message.sender === user._id
                         ? "self-end bg-primary"
@@ -189,19 +201,31 @@ export function MessagingArea() {
                     }`}
                 key={index}
               >
-                {message.sender !== user._id && (
-                  <span>
-                    {usersMap?.get(message.sender)?.fullName} -{" "}
-                    <TimeAgo date={message.createdAt} formatter={formatter} />
-                  </span>
+                {message.type === TEXT_MESSAGE_TYPE ? (
+                  <div className="p-2">
+                    {message.sender !== user._id && (
+                      <span>
+                        {usersMap?.get(message.sender)?.fullName} -{" "}
+                        <TimeAgo
+                          date={message.createdAt}
+                          formatter={formatter}
+                        />
+                      </span>
+                    )}
+                    <div>
+                      <span
+                        dangerouslySetInnerHTML={{
+                          __html: message.content.replace(/\n/g, "<br/>"),
+                        }}
+                        className="break-words"
+                      ></span>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <Image src={message.content} />
+                  </div>
                 )}
-                <div>
-                  <span
-                    dangerouslySetInnerHTML={{
-                      __html: message.content.replace(/\n/g, "<br/>"),
-                    }}
-                  ></span>
-                </div>
               </div>
             ))
           )}
@@ -212,7 +236,7 @@ export function MessagingArea() {
           )}
         </div>
       </div>
-      <div className="flex gap-2 items-end">
+      <div className="flex gap-2 items-end pr-3">
         <TextArea
           ref={messageInputRef}
           id="messageInput"

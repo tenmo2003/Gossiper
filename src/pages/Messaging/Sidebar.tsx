@@ -14,7 +14,7 @@ import { useContext, useEffect, useState } from "react";
 import ChatRoom from "./ChatRoom";
 import CurrentRoomContext from "@/contexts/CurrentRoomContext";
 
-export default function Sidebar() {
+export default function Sidebar({ setSidebarOpen }: any) {
   const { user } = useContext<any>(AuthContext);
 
   const { setCurrentlyJoinedRoom } = useContext<any>(CurrentRoomContext);
@@ -185,7 +185,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="w-[30rem] border-r border-gray-700 pt-3 h-full flex flex-col">
+    <div className="w-full border-r border-gray-700 bg-mainBackground pt-3 h-full flex flex-col">
       <div className="px-3">
         <AutoComplete
           className="w-[100%]"
@@ -240,7 +240,7 @@ export default function Sidebar() {
       >
         {chatRooms &&
           chatRooms.map((chatRoom: any) => (
-            <ChatRoom key={chatRoom._id} room={chatRoom} user={user} />
+            <ChatRoom key={chatRoom._id} room={chatRoom} user={user} setSidebarOpen={setSidebarOpen} />
           ))}
         {chatsLoading && (
           <div className="text-3xl text-center">

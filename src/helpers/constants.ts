@@ -8,3 +8,6 @@ export const JOIN_BY_ID_EVENT = "joinById";
 export const JOIN_BY_USERS_EVENT = "joinByUsers";
 export const JOINED_EVENT = "joined";
 export const ROOM_UPDATE_EVENT = "roomUpdate";
+
+export const TEXT_MESSAGE_TYPE = "text";
+export const IMAGE_MESSAGE_TYPE = "image";

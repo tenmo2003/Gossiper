@@ -1,4 +1,8 @@
-import { JOIN_BY_ID_EVENT, PRIVATE_CHAT_TYPE } from "@/helpers/constants";
+import {
+  JOIN_BY_ID_EVENT,
+  PRIVATE_CHAT_TYPE,
+  TEXT_MESSAGE_TYPE,
+} from "@/helpers/constants";
 import { formatter } from "@/helpers/helpers";
 import { Avatar } from "antd";
 import TimeAgo from "react-timeago";
@@ -7,7 +11,7 @@ import { socket } from "@/socket.io/socket";
 import CurrentRoomContext from "@/contexts/CurrentRoomContext";
 import { useContext } from "react";
 
-export default function ChatRoom({ room, user }: any) {
+export default function ChatRoom({ room, user, setSidebarOpen }: any) {
   const { currentlyJoinedRoom, setCurrentlyJoinedRoom } =
     useContext(CurrentRoomContext);
 
@@ -33,6 +37,7 @@ export default function ChatRoom({ room, user }: any) {
           : "hover:bg-gray-700"
       } transition-all duration-100`}
       onClick={() => {
+        if (setSidebarOpen) setSidebarOpen(false);
         setCurrentlyJoinedRoom(room);
         socket.emit(JOIN_BY_ID_EVENT, { roomId: room._id });
       }}
@@ -48,9 +53,13 @@ export default function ChatRoom({ room, user }: any) {
         </div>
         <div className="text-gray-400 text-base flex gap-1">
           {room.lastMessage?.sender === user._id && "You:"}
-          <span className="text-ellipsis whitespace-nowrap overflow-hidden max-w-[60%]">
-            {room.lastMessage.content}
-          </span>
+          {room.lastMessage?.type === TEXT_MESSAGE_TYPE ? (
+            <span className="text-ellipsis whitespace-nowrap overflow-hidden xl:max-w-[15rem] max-w-[10rem]">
+              {room.lastMessage.content}
+            </span>
+          ) : (
+            <span>Sent an image</span>
+          )}
           {"-"}
           <TimeAgo date={room.lastMessage.createdAt} formatter={formatter} />
         </div>
