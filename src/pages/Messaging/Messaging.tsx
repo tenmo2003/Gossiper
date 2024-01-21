@@ -12,19 +12,23 @@ import Drawer from "react-modern-drawer";
 import "react-modern-drawer/dist/index.css";
 import * as nsfwjs from "nsfwjs";
 import * as tf from "@tensorflow/tfjs";
+import Loading from "@/helpers/Loading";
 
 export default function Messaging() {
   const { user, setUser } = useContext<any>(AuthContext);
 
   const { currentlyJoinedRoom } = useContext(CurrentRoomContext);
 
-  const [sidebarOpen, setSidebarOpen] = useState<any>(true);
+  const [sidebarOpen, setSidebarOpen] = useState<any>(false);
 
   const [model, setModel] = useState<any>(null);
+
+  const [loading, setLoading] = useState<boolean>(false);
 
   const loadModel = async () => {
     const model = await nsfwjs.load();
     setModel(model);
+    setLoading(false);
     console.log("LOADED MODEL");
   };
 
@@ -34,6 +38,7 @@ export default function Messaging() {
         setUser(res.data.results);
       });
     }
+    setLoading(true);
     tf.ready().then(() => {
       loadModel();
     });
@@ -64,8 +69,9 @@ export default function Messaging() {
 
   return (
     <div className="w-full h-screen bg-mainBackground text-white flex overflow-hidden">
+      {loading && <Loading />}
       {isDesktopOrLaptop ? (
-        <div className="w-[30rem]">
+        <div className="w-[30rem] flex-shrink-0">
           <Sidebar />
         </div>
       ) : (
@@ -73,12 +79,12 @@ export default function Messaging() {
           direction="left"
           open={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
-          style={{ width: "25rem" }}
+          style={{ width: "25rem", maxWidth: "80%" }}
         >
           <Sidebar setSidebarOpen={setSidebarOpen} />
         </Drawer>
       )}
-      <div className="flex-1 w-full p-3 pr-0 flex flex-col relative">
+      <div className="flex-1 p-3 pr-0 flex flex-col relative">
         {!isDesktopOrLaptop && (
           <div
             className="absolute top-0 left-0 p-3 text-xl cursor-pointer"

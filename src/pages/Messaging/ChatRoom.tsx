@@ -54,7 +54,7 @@ export default function ChatRoom({ room, user, setSidebarOpen }: any) {
         <div className="text-gray-400 text-base flex gap-1">
           {room.lastMessage?.sender === user._id && "You:"}
           {room.lastMessage?.type === TEXT_MESSAGE_TYPE ? (
-            <span className="text-ellipsis whitespace-nowrap overflow-hidden xl:max-w-[15rem] max-w-[10rem]">
+            <span className="text-ellipsis whitespace-nowrap overflow-hidden xl:max-w-[15rem] max-w-[6rem]">
               {room.lastMessage.content}
             </span>
           ) : (

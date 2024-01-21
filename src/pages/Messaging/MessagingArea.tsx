@@ -17,12 +17,13 @@ import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 import { Image } from "antd";
 import TextArea from "antd/es/input/TextArea";
-import { XCircle } from "lucide-react";
+import { XCircle, Image as ImageIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { BsEmojiNeutral } from "react-icons/bs";
 import TimeAgo from "react-timeago";
 import { toast } from "sonner";
 import * as tf from "@tensorflow/tfjs";
+import { useMediaQuery } from "react-responsive";
 
 export function MessagingArea({ model }: any) {
   const { user } = React.useContext<any>(AuthContext);
@@ -49,6 +50,10 @@ export function MessagingArea({ model }: any) {
   const messageInputRef = React.useRef<any>();
   const [images, setImages] = useState<any>([]);
   const predictionThreshold = 0.7;
+
+  const isDesktopOrLaptop = useMediaQuery({
+    query: "(min-width: 1224px)",
+  });
 
   useEffect(() => {
     if (!currentlyJoinedRoom) return;
@@ -210,6 +215,7 @@ export function MessagingArea({ model }: any) {
       <div className="text-center font-bold text-2xl mb-3">{chatName}</div>
       <div
         ref={messageContainerRef}
+        id="messageContainer"
         className="flex flex-col-reverse gap-1 flex-1 px-2 py-1 mb-2 overflow-auto"
         onScroll={(e: any) => {
           // check if user is 90% to top
@@ -221,6 +227,17 @@ export function MessagingArea({ model }: any) {
             fetchMoreData();
           }
         }}
+        onDrop={(e) => {
+          e.preventDefault();
+          console.log(e.dataTransfer.files[0].type);
+          if (
+            e.dataTransfer.files[0].type.startsWith("image/jpeg") ||
+            e.dataTransfer.files[0].type.startsWith("image/png")
+          ) {
+            setImages((prev: any) => [...prev, e.dataTransfer.files[0]]);
+          }
+        }}
+        onDragOver={(e) => e.preventDefault()}
         onClick={() => messageInputRef.current?.focus()}
       >
         <div className="flex flex-col-reverse gap-1 flex-1">
@@ -279,10 +296,35 @@ export function MessagingArea({ model }: any) {
           )}
         </div>
       </div>
-      <div className="flex gap-2 items-end pr-3">
+      <div
+        className="flex gap-2 items-end pr-3"
+        onDrop={(e) => {
+          e.preventDefault();
+          if (e.dataTransfer.files[0].type.startsWith("image")) {
+            setImages((prev: any) => [...prev, e.dataTransfer.files[0]]);
+          }
+        }}
+        onDragOver={(e) => e.preventDefault()}
+      >
+        <label
+          className="py-2 px-1 relative text-2xl cursor-pointer hover:text-[#6899d9] transition-all duration-100"
+          htmlFor="imageInput"
+        >
+          <ImageIcon size={30} />
+        </label>
+        <input
+          id="imageInput"
+          type="file"
+          className="hidden"
+          multiple
+          accept=".jpg, .jpeg, .png"
+          onChange={(e) => {
+            setImages((prev: any) => [...prev, ...e.target.files]);
+          }}
+        />
         <div className="flex-1 relative">
           {images.length > 0 && (
-            <div className="flex overflow-x-auto p-2 pb-0 bg-gray-700 rounded-t-[4px] gap-2">
+            <div className="overflow-x-auto p-2 flex pb-0 bg-gray-700 rounded-t-[4px] gap-2 w-full">
               {images.map((image: any, index: number) => (
                 <div className="flex-shrink-0 relative" key={index}>
                   <Image
@@ -341,7 +383,7 @@ export function MessagingArea({ model }: any) {
             <BsEmojiNeutral className="text-2xl" />
           </div>
           {emojiPickerOpen && (
-            <div className="absolute top-0 right-0 -translate-x-1 -translate-y-full">
+            <div className="absolute top-0 right-0 translate-x-1 -translate-y-full">
               <Picker
                 data={data}
                 onEmojiSelect={(emoji: any) => {
@@ -355,6 +397,7 @@ export function MessagingArea({ model }: any) {
                 skinTonePosition="search"
                 emojiSize={30}
                 navPosition="bottom"
+                perLine={isDesktopOrLaptop ? 9 : 7}
               />
             </div>
           )}
