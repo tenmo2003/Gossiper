@@ -2,30 +2,27 @@ import AuthContext from "@/contexts/AuthContext";
 import CurrentRoomContext from "@/contexts/CurrentRoomContext";
 import {
   HENTAI_PREDICTION,
-  IMAGE_MESSAGE_TYPE,
   MESSAGE_EVENT,
   PORN_PREDICTION,
   PRIVATE_CHAT_TYPE,
   TEMP_CHAT_PREFIX,
-  TEXT_MESSAGE_TYPE,
 } from "@/helpers/constants";
-import { formatter } from "@/helpers/helpers";
+import { getDefaultErrorQueryClient } from "@/helpers/queryClient";
 import service from "@/service/service";
 import { socket } from "@/socket.io/socket";
-import { LoadingOutlined, SendOutlined } from "@ant-design/icons";
+import { SendOutlined } from "@ant-design/icons";
 import emojiData from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
+import { useQuery } from "@tanstack/react-query";
+import * as tf from "@tensorflow/tfjs";
 import { Image } from "antd";
 import TextArea from "antd/es/input/TextArea";
-import { XCircle, Image as ImageIcon } from "lucide-react";
+import { Image as ImageIcon, XCircle } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { BsEmojiNeutral } from "react-icons/bs";
-import TimeAgo from "react-timeago";
-import { toast } from "sonner";
-import * as tf from "@tensorflow/tfjs";
 import { useMediaQuery } from "react-responsive";
-import { useQuery } from "@tanstack/react-query";
-import { defaultErrorQueryClient } from "@/helpers/queryClient";
+import { toast } from "sonner";
+import Messages from "./Messages";
 
 export function MessagingArea({ model }: any) {
   const { user } = React.useContext<any>(AuthContext);
@@ -98,7 +95,10 @@ export function MessagingArea({ model }: any) {
     };
   }, [currentlyJoinedRoom]);
 
+  const [initLoading, setInitLoading] = useState(false);
+
   const fetchMessages = async () => {
+    setInitLoading(true);
     const response = await service.get(
       `/chats/messages/${currentlyJoinedRoom._id}`,
       {
@@ -112,16 +112,17 @@ export function MessagingArea({ model }: any) {
     if (response.data.results.length < messageQuerySize) {
       setNoMoreData(true);
     }
+    setInitLoading(false);
     return response.data.results;
   };
 
   // Use the useQuery hook
-  const { isLoading } = useQuery(
+  useQuery(
     {
       queryKey: ["messages", currentlyJoinedRoom._id],
       queryFn: fetchMessages,
     },
-    defaultErrorQueryClient
+    getDefaultErrorQueryClient(() => setInitLoading(false))
   );
 
   const sendMessage = () => {
@@ -203,8 +204,14 @@ export function MessagingArea({ model }: any) {
     };
   }, []);
 
+  const [justDetectedNSFW, setJustDetectedNSFW] = useState(false);
+
   useEffect(() => {
     if (!images.length) return;
+    if (justDetectedNSFW) {
+      setJustDetectedNSFW(false);
+      return;
+    }
     assessImage(images[images.length - 1]).then((prediction) => {
       console.log("prediction >>>", prediction);
       if (
@@ -213,6 +220,7 @@ export function MessagingArea({ model }: any) {
         prediction[0].probability > predictionThreshold
       ) {
         toast("NSFW content detected");
+        setJustDetectedNSFW(true);
         setImages((prev: any) => prev.slice(0, -1));
         return;
       }
@@ -249,64 +257,15 @@ export function MessagingArea({ model }: any) {
         onDragOver={(e) => e.preventDefault()}
         onClick={() => messageInputRef.current?.focus()}
       >
-        <div className="flex flex-col-reverse gap-1 flex-1">
-          {isLoading ? (
-            <div className="w-full h-full flex items-center justify-center">
-              <LoadingOutlined spin size={30} className="text-white text-3xl" />
-            </div>
-          ) : (
-            messages.map((message: any, index: number) => (
-              <div
-                className={`border border-gray-700 text-lg text-white rounded-lg max-w-[65%]
-                    ${
-                      message.sender === user._id
-                        ? "self-end bg-primary"
-                        : "self-start"
-                    } ${
-                  message.type === IMAGE_MESSAGE_TYPE && "bg-transparent"
-                }`}
-                key={index}
-              >
-                {message.type === TEXT_MESSAGE_TYPE ? (
-                  <div className="p-2">
-                    {message.sender !== user._id && (
-                      <span>
-                        {usersMap?.get(message.sender)?.fullName} -{" "}
-                        <TimeAgo
-                          date={message.createdAt}
-                          formatter={formatter}
-                        />
-                      </span>
-                    )}
-                    <div>
-                      <span
-                        dangerouslySetInnerHTML={{
-                          __html: message.content.replace(/\n/g, "<br/>"),
-                        }}
-                        className="break-words"
-                      ></span>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <Image
-                      src={message.content}
-                      className="max-w-[20rem] max-h-[20rem] object-cover"
-                    />
-                  </div>
-                )}
-              </div>
-            ))
-          )}
-          {loading && (
-            <div className="w-full text-center text-3xl">
-              <LoadingOutlined />
-            </div>
-          )}
-        </div>
+        <Messages
+          data={messages}
+          initLoading={initLoading}
+          usersMap={usersMap}
+          loading={loading}
+        />
       </div>
       <div
-        className="flex gap-2 items-end pr-3"
+        className="flex gap-2 items-end pr-3 w-full"
         onDrop={(e) => {
           e.preventDefault();
           if (e.dataTransfer.files[0].type.startsWith("image")) {
@@ -333,7 +292,7 @@ export function MessagingArea({ model }: any) {
         />
         <div className="flex-1 relative">
           {images.length > 0 && (
-            <div className="overflow-x-auto p-2 flex pb-0 bg-gray-700 rounded-t-[4px] gap-2 w-full">
+            <div className="overflow-auto p-2 flex pb-0 bg-gray-700 rounded-t-[4px] gap-2">
               {images.map((image: any, index: number) => (
                 <div className="flex-shrink-0 relative" key={index}>
                   <Image

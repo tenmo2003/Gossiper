@@ -1,5 +1,6 @@
 import {
   JOIN_BY_ID_EVENT,
+  LEAVE_EVENT,
   PRIVATE_CHAT_TYPE,
   TEXT_MESSAGE_TYPE,
 } from "@/helpers/constants";
@@ -39,6 +40,8 @@ export default function ChatRoom({ room, user, setSidebarOpen }: any) {
       onClick={() => {
         if (setSidebarOpen) setSidebarOpen(false);
         setCurrentlyJoinedRoom(room);
+        currentlyJoinedRoom &&
+          socket.emit(LEAVE_EVENT, { roomId: currentlyJoinedRoom._id });
         socket.emit(JOIN_BY_ID_EVENT, { roomId: room._id });
       }}
     >
