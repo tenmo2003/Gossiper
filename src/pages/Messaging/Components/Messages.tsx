@@ -32,6 +32,7 @@ export default function Messages({
               message.type === IMAGE_MESSAGE_TYPE && "bg-transparent"
             }`}
             key={index}
+            onClick={(e) => e.stopPropagation()}
           >
             {message.type === TEXT_MESSAGE_TYPE ? (
               <div className="p-2">

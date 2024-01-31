@@ -22,7 +22,8 @@ import React, { useEffect, useState } from "react";
 import { BsEmojiNeutral } from "react-icons/bs";
 import { useMediaQuery } from "react-responsive";
 import { toast } from "sonner";
-import Messages from "./Messages";
+import Messages from "./Components/Messages";
+import ImagePicker from "./Components/ImagePicker";
 
 export function MessagingArea({ model }: any) {
   const { user } = React.useContext<any>(AuthContext);
@@ -274,22 +275,7 @@ export function MessagingArea({ model }: any) {
         }}
         onDragOver={(e) => e.preventDefault()}
       >
-        <label
-          className="py-2 px-1 relative text-2xl cursor-pointer hover:text-[#6899d9] transition-all duration-100"
-          htmlFor="imageInput"
-        >
-          <ImageIcon size={30} />
-        </label>
-        <input
-          id="imageInput"
-          type="file"
-          className="hidden"
-          multiple
-          accept=".jpg, .jpeg, .png"
-          onChange={(e) => {
-            setImages((prev: any) => [...prev, ...e.target.files]);
-          }}
-        />
+        <ImagePicker setImages={setImages} />
         <div className="flex-1 relative">
           {images.length > 0 && (
             <div className="overflow-auto p-2 flex pb-0 bg-gray-700 rounded-t-[4px] gap-2">
@@ -303,7 +289,7 @@ export function MessagingArea({ model }: any) {
                     className="object-center object-cover"
                   />
                   <div
-                    className="absolute right-0 top-0 cursor-pointer"
+                    className="absolute right-0 top-0 cursor-pointer hover:text-red-400 transition-colors duration-200"
                     onClick={() =>
                       setImages((prev: any) =>
                         prev.filter((item: any) => item !== image)

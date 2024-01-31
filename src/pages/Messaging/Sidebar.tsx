@@ -11,7 +11,7 @@ import { LoadingOutlined } from "@ant-design/icons";
 import { AutoComplete, Divider } from "antd";
 import { Search } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
-import ChatRoom from "./ChatRoom";
+import ChatRoom from "./Components/ChatRoom";
 import CurrentRoomContext from "@/contexts/CurrentRoomContext";
 
 export default function Sidebar({ setSidebarOpen }: any) {
