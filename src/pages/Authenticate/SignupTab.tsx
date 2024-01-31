@@ -2,7 +2,7 @@ import service from "@/service/service";
 import { Button, Form, Input } from "antd";
 import { toast } from "sonner";
 
-export default function SignupTab() {
+export default function SignupTab({ setActiveKey }: any) {
   const [form] = Form.useForm();
 
   const onFinish = () => {
@@ -21,6 +21,7 @@ export default function SignupTab() {
       .post("/auth/signup", { username, password, email, fullName })
       .then((res: any) => {
         toast(res.data.message);
+        setActiveKey("1");
       })
       .catch((err) => {
         //add loading

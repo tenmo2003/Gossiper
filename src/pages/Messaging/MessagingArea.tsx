@@ -99,6 +99,10 @@ export function MessagingArea({ model }: any) {
   const [initLoading, setInitLoading] = useState(false);
 
   const fetchMessages = async () => {
+    if (currentlyJoinedRoom._id.startsWith(TEMP_CHAT_PREFIX)) {
+      return [];
+    }
+    
     setInitLoading(true);
     const response = await service.get(
       `/chats/messages/${currentlyJoinedRoom._id}`,
