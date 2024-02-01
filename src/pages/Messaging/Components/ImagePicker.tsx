@@ -1,5 +1,4 @@
 import { ImageIcon } from "lucide-react";
-import React from "react";
 
 export default function ImagePicker({ setImages }: any) {
   return (

@@ -17,13 +17,13 @@ import { useQuery } from "@tanstack/react-query";
 import * as tf from "@tensorflow/tfjs";
 import { Image } from "antd";
 import TextArea from "antd/es/input/TextArea";
-import { Image as ImageIcon, XCircle } from "lucide-react";
+import { XCircle } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { BsEmojiNeutral } from "react-icons/bs";
 import { useMediaQuery } from "react-responsive";
 import { toast } from "sonner";
-import Messages from "./Components/Messages";
 import ImagePicker from "./Components/ImagePicker";
+import Messages from "./Components/Messages";
 
 export function MessagingArea({ model }: any) {
   const { user } = React.useContext<any>(AuthContext);
@@ -57,6 +57,8 @@ export function MessagingArea({ model }: any) {
 
   useEffect(() => {
     if (!currentlyJoinedRoom) return;
+
+    console.log("Joined Room >>>", currentlyJoinedRoom);
 
     if (currentlyJoinedRoom._id.startsWith(TEMP_CHAT_PREFIX)) {
       setChatName(currentlyJoinedRoom.tmpWith.fullName);
@@ -102,7 +104,7 @@ export function MessagingArea({ model }: any) {
     if (currentlyJoinedRoom._id.startsWith(TEMP_CHAT_PREFIX)) {
       return [];
     }
-    
+
     setInitLoading(true);
     const response = await service.get(
       `/chats/messages/${currentlyJoinedRoom._id}`,
@@ -194,20 +196,24 @@ export function MessagingArea({ model }: any) {
   };
 
   useEffect(() => {
-    document.getElementById("messageInput")?.addEventListener("paste", (e) => {
-      if (e.clipboardData?.files?.length) {
-        e.preventDefault();
-        setImages((prev: any) => [...prev, ...e.clipboardData.files]);
-        return;
-      }
-    });
+    if (!currentlyJoinedRoom.tmpWith) {
+      document
+        .getElementById("messageInput")
+        ?.addEventListener("paste", (e) => {
+          if (e.clipboardData?.files?.length) {
+            e.preventDefault();
+            setImages((prev: any) => [...prev, ...e.clipboardData.files]);
+            return;
+          }
+        });
+    }
 
     return () => {
       document
         .getElementById("messageInput")
         ?.removeEventListener("paste", () => {});
     };
-  }, []);
+  }, [currentlyJoinedRoom]);
 
   const [justDetectedNSFW, setJustDetectedNSFW] = useState(false);
 
@@ -279,7 +285,7 @@ export function MessagingArea({ model }: any) {
         }}
         onDragOver={(e) => e.preventDefault()}
       >
-        <ImagePicker setImages={setImages} />
+        {!currentlyJoinedRoom.tmpWith && <ImagePicker setImages={setImages} />}
         <div className="flex-1 relative">
           {images.length > 0 && (
             <div className="overflow-auto p-2 flex pb-0 bg-gray-700 rounded-t-[4px] gap-2">

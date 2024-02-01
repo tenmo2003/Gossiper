@@ -62,6 +62,8 @@ export default function Sidebar({ setSidebarOpen }: any) {
         setCurrentlyJoinedRoom({
           ...data,
         });
+      } else if (data.type) {
+        setCurrentlyJoinedRoom(data);
       } else {
         setCurrentlyJoinedRoom(
           chatRooms.find((item: any) => item._id === data._id)
@@ -240,7 +242,12 @@ export default function Sidebar({ setSidebarOpen }: any) {
       >
         {chatRooms &&
           chatRooms.map((chatRoom: any) => (
-            <ChatRoom key={chatRoom._id} room={chatRoom} user={user} setSidebarOpen={setSidebarOpen} />
+            <ChatRoom
+              key={chatRoom._id}
+              room={chatRoom}
+              user={user}
+              setSidebarOpen={setSidebarOpen}
+            />
           ))}
         {chatsLoading && (
           <div className="text-3xl text-center">
