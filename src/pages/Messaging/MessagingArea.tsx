@@ -13,7 +13,7 @@ import { formatter } from "@/helpers/helpers";
 import service from "@/service/service";
 import { socket } from "@/socket.io/socket";
 import { LoadingOutlined, SendOutlined } from "@ant-design/icons";
-import data from "@emoji-mart/data";
+import emojiData from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 import { Image } from "antd";
 import TextArea from "antd/es/input/TextArea";
@@ -24,6 +24,8 @@ import TimeAgo from "react-timeago";
 import { toast } from "sonner";
 import * as tf from "@tensorflow/tfjs";
 import { useMediaQuery } from "react-responsive";
+import { useQuery } from "@tanstack/react-query";
+import { defaultErrorQueryClient } from "@/helpers/queryClient";
 
 export function MessagingArea({ model }: any) {
   const { user } = React.useContext<any>(AuthContext);
@@ -37,7 +39,7 @@ export function MessagingArea({ model }: any) {
   const [chatName, setChatName] = React.useState<string>("");
   const [usersMap, setUsersMap] = React.useState<Map<string, any>>();
 
-  const [initLoading, setInitLoading] = useState(false);
+  // const [initLoading, setInitLoading] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [noMoreData, setNoMoreData] = useState(false);
@@ -68,25 +70,6 @@ export function MessagingArea({ model }: any) {
     setCurrentInput("");
     setImages([]);
 
-    setInitLoading(true);
-    service
-      .get("/chats/messages/" + currentlyJoinedRoom._id, {
-        params: {
-          o: 0,
-          l: messageQuerySize,
-        },
-      })
-      .then((res) => {
-        setMessages(res.data.results);
-        if (res.data.results.length < messageQuerySize) {
-          setNoMoreData(true);
-        }
-        setInitLoading(false);
-      })
-      .catch(() => {
-        setInitLoading(false);
-      });
-
     setChatName(
       currentlyJoinedRoom.type === PRIVATE_CHAT_TYPE
         ? currentlyJoinedRoom.users[0]._id === user._id
@@ -114,6 +97,32 @@ export function MessagingArea({ model }: any) {
       socket.off(MESSAGE_EVENT);
     };
   }, [currentlyJoinedRoom]);
+
+  const fetchMessages = async () => {
+    const response = await service.get(
+      `/chats/messages/${currentlyJoinedRoom._id}`,
+      {
+        params: {
+          o: 0,
+          l: messageQuerySize,
+        },
+      }
+    );
+    setMessages(response.data.results);
+    if (response.data.results.length < messageQuerySize) {
+      setNoMoreData(true);
+    }
+    return response.data.results;
+  };
+
+  // Use the useQuery hook
+  const { isLoading } = useQuery(
+    {
+      queryKey: ["messages", currentlyJoinedRoom._id],
+      queryFn: fetchMessages,
+    },
+    defaultErrorQueryClient
+  );
 
   const sendMessage = () => {
     if (!currentInput && !images.length) {
@@ -241,7 +250,7 @@ export function MessagingArea({ model }: any) {
         onClick={() => messageInputRef.current?.focus()}
       >
         <div className="flex flex-col-reverse gap-1 flex-1">
-          {initLoading ? (
+          {isLoading ? (
             <div className="w-full h-full flex items-center justify-center">
               <LoadingOutlined spin size={30} className="text-white text-3xl" />
             </div>
@@ -385,7 +394,7 @@ export function MessagingArea({ model }: any) {
           {emojiPickerOpen && (
             <div className="absolute top-0 right-0 translate-x-1 -translate-y-full">
               <Picker
-                data={data}
+                data={emojiData}
                 onEmojiSelect={(emoji: any) => {
                   console.log(emoji);
                   setCurrentInput((prev) => prev + emoji.native);
