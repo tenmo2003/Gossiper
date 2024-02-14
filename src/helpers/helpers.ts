@@ -27,3 +27,7 @@ export const formatter = (
       return defaultFormatter(value, unit, suffix, date);
   }
 };
+
+export const getOtherUserId = (myId: string, users: any[]) => {
+  return users.filter((item) => item._id !== myId)[0]._id;
+};

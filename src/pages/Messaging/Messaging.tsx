@@ -29,7 +29,6 @@ export default function Messaging() {
     const model = await nsfwjs.load();
     setModel(model);
     setLoading(false);
-    console.log("LOADED MODEL");
   };
 
   useEffect(() => {

@@ -17,13 +17,14 @@ import { useQuery } from "@tanstack/react-query";
 import * as tf from "@tensorflow/tfjs";
 import { Image } from "antd";
 import TextArea from "antd/es/input/TextArea";
-import { XCircle } from "lucide-react";
+import { Phone, XCircle } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { BsEmojiNeutral } from "react-icons/bs";
 import { useMediaQuery } from "react-responsive";
 import { toast } from "sonner";
 import ImagePicker from "./Components/ImagePicker";
 import Messages from "./Components/Messages";
+import { getOtherUserId } from "@/helpers/helpers";
 
 export function MessagingArea({ model }: any) {
   const { user } = React.useContext<any>(AuthContext);
@@ -57,8 +58,6 @@ export function MessagingArea({ model }: any) {
 
   useEffect(() => {
     if (!currentlyJoinedRoom) return;
-
-    console.log("Joined Room >>>", currentlyJoinedRoom);
 
     if (currentlyJoinedRoom._id.startsWith(TEMP_CHAT_PREFIX)) {
       setChatName(currentlyJoinedRoom.tmpWith.fullName);
@@ -240,7 +239,20 @@ export function MessagingArea({ model }: any) {
 
   return (
     <>
-      <div className="text-center font-bold text-2xl mb-3">{chatName}</div>
+      <div className="relative">
+        <div className="text-center font-bold text-2xl mb-3">{chatName}</div>
+        {!initNewChat && (
+          <Phone
+            className="absolute right-4 top-0 hover:text-blue-400 cursor-pointer"
+            onClick={() =>
+              window.open(
+                "/call/" + getOtherUserId(user._id, currentlyJoinedRoom.users),
+                "_blank"
+              )
+            }
+          />
+        )}
+      </div>
       <div
         ref={messageContainerRef}
         id="messageContainer"
@@ -257,7 +269,6 @@ export function MessagingArea({ model }: any) {
         }}
         onDrop={(e) => {
           e.preventDefault();
-          console.log(e.dataTransfer.files[0].type);
           if (
             e.dataTransfer.files[0].type.startsWith("image/jpeg") ||
             e.dataTransfer.files[0].type.startsWith("image/png")
@@ -351,7 +362,6 @@ export function MessagingArea({ model }: any) {
               <Picker
                 data={emojiData}
                 onEmojiSelect={(emoji: any) => {
-                  console.log(emoji);
                   setCurrentInput((prev) => prev + emoji.native);
                 }}
                 onClickOutside={() => {

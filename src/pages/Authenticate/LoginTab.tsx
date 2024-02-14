@@ -1,7 +1,6 @@
 import service from "@/service/service";
 import { Button, Form, Input } from "antd";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 
 export default function LoginTab() {
   const [form] = Form.useForm();
