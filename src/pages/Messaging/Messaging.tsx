@@ -1,21 +1,27 @@
 import AuthContext from "@/contexts/AuthContext";
 import CurrentRoomContext from "@/contexts/CurrentRoomContext";
+import PeerContext from "@/contexts/PeerContext";
+import Loading from "@/helpers/Loading";
 import { JOINED_EVENT } from "@/helpers/constants";
-import service from "@/service/service";
 import { socket } from "@/socket.io/socket";
-import { useContext, useEffect, useState } from "react";
-import { MessagingArea } from "./MessagingArea";
-import Sidebar from "./Sidebar";
-import { useMediaQuery } from "react-responsive";
 import { MenuOutlined } from "@ant-design/icons";
+import * as tf from "@tensorflow/tfjs";
+import * as nsfwjs from "nsfwjs";
+import { Peer } from "peerjs";
+import { useContext, useEffect, useState } from "react";
 import Drawer from "react-modern-drawer";
 import "react-modern-drawer/dist/index.css";
-import * as nsfwjs from "nsfwjs";
-import * as tf from "@tensorflow/tfjs";
-import Loading from "@/helpers/Loading";
+import { useMediaQuery } from "react-responsive";
+import { MessagingArea } from "./MessagingArea";
+import Sidebar from "./Sidebar";
+import service from "@/service/service";
 
 export default function Messaging() {
   const { user, setUser } = useContext<any>(AuthContext);
+  const { peer, setPeer } = useContext<{
+    peer: Peer | undefined;
+    setPeer: any;
+  }>(PeerContext);
 
   const { currentlyJoinedRoom } = useContext(CurrentRoomContext);
 
@@ -25,6 +31,8 @@ export default function Messaging() {
 
   const [loading, setLoading] = useState<boolean>(false);
 
+  const [callIncoming, setCallIncoming] = useState<boolean>(false);
+
   const loadModel = async () => {
     const model = await nsfwjs.load();
     setModel(model);
@@ -32,14 +40,27 @@ export default function Messaging() {
   };
 
   useEffect(() => {
-    if (!user) {
-      service.get("/users/me").then((res) => {
-        setUser(res.data.results);
-      });
-    }
     setLoading(true);
     tf.ready().then(() => {
       loadModel();
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      service.get("/users/me").then((res) => {
+        setUser(res.data.results);
+
+        setPeer(new Peer(res.data.results._id));
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!peer) return;
+
+    peer.on("call", (call) => {
+      setCallIncoming(true);
     });
   }, []);
 
