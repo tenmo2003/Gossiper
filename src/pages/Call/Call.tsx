@@ -1,9 +1,9 @@
 import InCallContext from "@/contexts/InCallContext";
 import IsCallerContext from "@/contexts/IsCallerContext";
 import { socket } from "@/socket.io/socket";
+import { Peer } from "peerjs";
 import { useContext, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import Peer from "simple-peer";
 import { toast } from "sonner";
 
 export default function Call() {
@@ -19,38 +19,13 @@ export default function Call() {
     }
 
     const media = await navigator.mediaDevices.getUserMedia({
-      video: true,
+      // video: true,
       audio: true,
-    });
-
-    const peer = new Peer({
-      initiator: true,
-      stream: media,
     });
 
     // set video element to user webcam
     (document.getElementById("selfVideo")! as HTMLVideoElement).srcObject =
       media;
-
-    peer.on("signal", (data) => {
-      socket.emit("signal", {
-        to: callTo,
-        data,
-      });
-    });
-
-    peer.on("connect", () => {
-      setInCall(true);
-    });
-
-    peer.on("stream", (stream) => {
-      (document.getElementById("otherVideo")! as HTMLVideoElement).srcObject =
-        stream;
-    });
-
-    socket.on("signal", (data) => {
-      peer.signal(data);
-    });
   };
 
   const joinCall = async () => {
@@ -60,7 +35,7 @@ export default function Call() {
     }
 
     const media = await navigator.mediaDevices.getUserMedia({
-      video: true,
+      // video: true,
       audio: true,
     });
 
