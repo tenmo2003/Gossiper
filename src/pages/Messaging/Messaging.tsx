@@ -1,21 +1,23 @@
 import AuthContext from "@/contexts/AuthContext";
 import CurrentRoomContext from "@/contexts/CurrentRoomContext";
+import IncomingCallContext from "@/contexts/IncomingCallContext";
 import PeerContext from "@/contexts/PeerContext";
 import Loading from "@/helpers/Loading";
 import { JOINED_EVENT } from "@/helpers/constants";
+import service from "@/service/service";
 import { socket } from "@/socket.io/socket";
 import { MenuOutlined } from "@ant-design/icons";
 import * as tf from "@tensorflow/tfjs";
 import * as nsfwjs from "nsfwjs";
-import { Peer } from "peerjs";
+import { MediaConnection, Peer } from "peerjs";
 import { useContext, useEffect, useState } from "react";
 import Drawer from "react-modern-drawer";
 import "react-modern-drawer/dist/index.css";
 import { useMediaQuery } from "react-responsive";
 import { MessagingArea } from "./MessagingArea";
 import Sidebar from "./Sidebar";
-import service from "@/service/service";
 import CallPopup from "../Call/CallPopup";
+import { useNavigate } from "react-router-dom";
 
 export default function Messaging() {
   const { user, setUser } = useContext<any>(AuthContext);
@@ -23,6 +25,8 @@ export default function Messaging() {
     peer: Peer | undefined;
     setPeer: any;
   }>(PeerContext);
+
+  const navigate = useNavigate();
 
   const { currentlyJoinedRoom } = useContext(CurrentRoomContext);
 
@@ -32,7 +36,15 @@ export default function Messaging() {
 
   const [loading, setLoading] = useState<boolean>(false);
 
-  const [callIncoming, setCallIncoming] = useState<boolean>(false);
+  const [incomingCallCaller, setIncomingCallCaller] = useState<any>({
+    name: "",
+    avatar: "",
+  });
+
+  const { incomingCall, setIncomingCall } = useContext<{
+    incomingCall: MediaConnection;
+    setIncomingCall: any;
+  }>(IncomingCallContext);
 
   const loadModel = async () => {
     const model = await nsfwjs.load();
@@ -61,26 +73,32 @@ export default function Messaging() {
     if (!peer) return;
 
     peer.on("call", (call) => {
-      setCallIncoming(true);
-    });
+      service.get(`/users/${call.peer}`).then((res) => {
+        setIncomingCallCaller({
+          name: res.data.results.fullName,
+          avatar: res.data.results.avatar,
+        });
+      });
 
-    return () => {
-      peer.destroy();
-    };
+      setIncomingCall(call);
+    });
   }, [peer]);
+
+  const onAccept = () => {
+    navigate(`/call/${incomingCall.peer}?isCaller=${false}`);
+  };
+
+  const onReject = () => {
+    incomingCall.close();
+  };
 
   useEffect(() => {
     if (!user) return;
-
-    if (!socket.connected) {
-      socket.connect();
-    }
 
     socket.emit("self", user._id);
 
     return () => {
       socket.off(JOINED_EVENT);
-      socket.disconnect();
     };
   }, [user]);
 
@@ -93,7 +111,7 @@ export default function Messaging() {
   }, [isDesktopOrLaptop]);
 
   return (
-    <div className="w-screen h-screen bg-mainBackground text-white flex overflow-auto">
+    <div className="flex h-screen w-screen overflow-auto bg-mainBackground text-white">
       {loading && <Loading />}
       {isDesktopOrLaptop ? (
         <div className="w-[30rem] flex-shrink-0">
@@ -109,10 +127,10 @@ export default function Messaging() {
           <Sidebar setSidebarOpen={setSidebarOpen} />
         </Drawer>
       )}
-      <div className="flex-1 p-3 pr-0 flex flex-col relative">
+      <div className="relative flex flex-1 flex-col p-3 pr-0">
         {!isDesktopOrLaptop && (
           <div
-            className="absolute top-0 left-0 p-3 text-xl cursor-pointer"
+            className="absolute left-0 top-0 cursor-pointer p-3 text-xl"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
             <MenuOutlined />
@@ -120,7 +138,13 @@ export default function Messaging() {
         )}
         {currentlyJoinedRoom && <MessagingArea model={model} />}
       </div>
-      {callIncoming && <CallPopup />}
+      {incomingCall && (
+        <CallPopup
+          caller={incomingCallCaller}
+          onAccept={onAccept}
+          onReject={onReject}
+        />
+      )}
     </div>
   );
 }

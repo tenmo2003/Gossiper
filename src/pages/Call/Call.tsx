@@ -1,7 +1,8 @@
 import AuthContext from "@/contexts/AuthContext";
-import CurrentRoomContext from "@/contexts/CurrentRoomContext";
 import InCallContext from "@/contexts/InCallContext";
-import { getOtherUserId } from "@/helpers/helpers";
+import IncomingCallContext from "@/contexts/IncomingCallContext";
+import PeerContext from "@/contexts/PeerContext";
+import { MediaConnection, Peer } from "peerjs";
 import { useContext, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -9,18 +10,34 @@ import { toast } from "sonner";
 export default function Call() {
   const { inCall, setInCall } = useContext(InCallContext);
 
-  const [searchParams, setSearchParams] = useSearchParams();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [searchParams, _setSearchParams] = useSearchParams();
 
   const { user } = useContext(AuthContext);
-  const { currentlyJoinedRoom } = useContext(CurrentRoomContext);
 
-  const peer = JSON.parse(sessionStorage.getItem("peer") || "{}");
+  const { incomingCall, setIncomingCall } = useContext<{
+    incomingCall: MediaConnection;
+    setIncomingCall: any;
+  }>(IncomingCallContext);
 
-  const callTo = useParams().id;
+  const { peer } = useContext<{
+    peer: Peer | undefined;
+    setPeer: any;
+  }>(PeerContext);
+
+  useEffect(() => {
+    return () => {
+      setInCall(false);
+    };
+  }, []);
+
+  const urlParams = useParams();
 
   const startCall = async () => {
-    if (inCall) {
-      toast("You are already in a call!");
+    const callTo = urlParams.id;
+
+    if (callTo === user?.id || callTo === undefined) {
+      toast("Bad call request");
       return;
     }
 
@@ -29,7 +46,7 @@ export default function Call() {
       audio: true,
     });
 
-    peer?.call(getOtherUserId(user._id, currentlyJoinedRoom.users), media);
+    peer?.call(callTo, media);
 
     // set video element to user webcam
     (document.getElementById("selfVideo")! as HTMLVideoElement).srcObject =
@@ -37,15 +54,19 @@ export default function Call() {
   };
 
   const joinCall = async () => {
-    if (inCall) {
-      toast("You are already in a call!");
+    if (!incomingCall) {
+      toast("No incoming call");
       return;
     }
+
+    setIncomingCall(undefined);
 
     const media = await navigator.mediaDevices.getUserMedia({
       // video: true,
       audio: true,
     });
+
+    incomingCall.answer(media);
 
     // set video element to user webcam
     (document.getElementById("selfVideo")! as HTMLVideoElement).srcObject =
@@ -53,6 +74,13 @@ export default function Call() {
   };
 
   useEffect(() => {
+    if (inCall) {
+      toast("You are already in a call!");
+      return;
+    }
+
+    setInCall(true);
+
     const isCaller = searchParams.get("isCaller");
 
     if (isCaller) {
@@ -63,9 +91,9 @@ export default function Call() {
   }, []);
 
   return (
-    <div className="w-full h-screen bg-mainBackground">
+    <div className="h-screen w-full bg-mainBackground">
       <div className="text-3xl font-bold text-white">Call</div>
-      <div className="w-full flex">
+      <div className="flex w-full">
         {/* user video */}
         <video
           className="flex-1 rounded-xl bg-white"

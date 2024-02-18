@@ -1,6 +1,5 @@
 import AuthContext from "@/contexts/AuthContext";
 import CurrentRoomContext from "@/contexts/CurrentRoomContext";
-import IsCallerContext from "@/contexts/IsCallerContext";
 import {
   HENTAI_PREDICTION,
   MESSAGE_EVENT,
@@ -19,14 +18,14 @@ import { useQuery } from "@tanstack/react-query";
 import * as tf from "@tensorflow/tfjs";
 import { Image } from "antd";
 import TextArea from "antd/es/input/TextArea";
-import { Phone, XCircle } from "lucide-react";
-import React, { useContext, useEffect, useState } from "react";
+import { PhoneCall, XCircle } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { BsEmojiNeutral } from "react-icons/bs";
 import { useMediaQuery } from "react-responsive";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import ImagePicker from "./Components/ImagePicker";
 import Messages from "./Components/Messages";
-import { Link } from "react-router-dom";
 
 export function MessagingArea({ model }: any) {
   const { user } = React.useContext<any>(AuthContext);
@@ -42,6 +41,8 @@ export function MessagingArea({ model }: any) {
 
   // const [initLoading, setInitLoading] = useState(false);
 
+  const navigate = useNavigate();
+
   const [loading, setLoading] = useState(false);
   const [noMoreData, setNoMoreData] = useState(false);
   const messageQuerySize = 20;
@@ -53,8 +54,6 @@ export function MessagingArea({ model }: any) {
   const messageInputRef = React.useRef<any>();
   const [images, setImages] = useState<any>([]);
   const predictionThreshold = 0.7;
-
-  const { setIsCaller } = useContext(IsCallerContext);
 
   const isDesktopOrLaptop = useMediaQuery({
     query: "(min-width: 1224px)",
@@ -78,7 +77,7 @@ export function MessagingArea({ model }: any) {
         ? currentlyJoinedRoom.users[0]._id === user._id
           ? currentlyJoinedRoom.users[1].fullName
           : currentlyJoinedRoom.users[0].fullName
-        : currentlyJoinedRoom.groupName
+        : currentlyJoinedRoom.groupName,
     );
 
     setNoMoreData(false);
@@ -116,7 +115,7 @@ export function MessagingArea({ model }: any) {
           o: 0,
           l: messageQuerySize,
         },
-      }
+      },
     );
     setMessages(response.data.results);
     if (response.data.results.length < messageQuerySize) {
@@ -132,7 +131,7 @@ export function MessagingArea({ model }: any) {
       queryKey: ["messages", currentlyJoinedRoom._id],
       queryFn: fetchMessages,
     },
-    getDefaultErrorQueryClient(() => setInitLoading(false))
+    getDefaultErrorQueryClient(() => setInitLoading(false)),
   );
 
   const sendMessage = () => {
@@ -244,21 +243,20 @@ export function MessagingArea({ model }: any) {
   return (
     <>
       <div className="relative">
-        <div className="text-center font-bold text-2xl mb-3">{chatName}</div>
+        <div className="mb-3 text-center text-2xl font-bold">{chatName}</div>
         {!initNewChat && (
           <Link
             to={`/call/${getOtherUserId(user._id, currentlyJoinedRoom.users)}?isCaller=${true}`}
-            target="_blank"
             state={{ isCaller: true }}
           >
-            <Phone className="absolute right-4 top-0 hover:text-blue-400 cursor-pointer" />
+            <PhoneCall className="absolute right-4 top-0 cursor-pointer hover:text-blue-400" />
           </Link>
         )}
       </div>
       <div
         ref={messageContainerRef}
         id="messageContainer"
-        className="flex flex-col-reverse gap-1 flex-1 px-2 py-1 mb-2 overflow-auto"
+        className="mb-2 flex flex-1 flex-col-reverse gap-1 overflow-auto px-2 py-1"
         onScroll={(e: any) => {
           // check if user is 90% to top
           if (
@@ -289,7 +287,7 @@ export function MessagingArea({ model }: any) {
         />
       </div>
       <div
-        className="flex gap-2 items-end pr-3 w-full"
+        className="flex w-full items-end gap-2 pr-3"
         onDrop={(e) => {
           e.preventDefault();
           if (e.dataTransfer.files[0].type.startsWith("image")) {
@@ -299,23 +297,23 @@ export function MessagingArea({ model }: any) {
         onDragOver={(e) => e.preventDefault()}
       >
         {!currentlyJoinedRoom.tmpWith && <ImagePicker setImages={setImages} />}
-        <div className="flex-1 relative">
+        <div className="relative flex-1">
           {images.length > 0 && (
-            <div className="overflow-auto p-2 flex pb-0 bg-gray-700 rounded-t-[4px] gap-2">
+            <div className="flex gap-2 overflow-auto rounded-t-[4px] bg-gray-700 p-2 pb-0">
               {images.map((image: any, index: number) => (
-                <div className="flex-shrink-0 relative" key={index}>
+                <div className="relative flex-shrink-0" key={index}>
                   <Image
                     src={URL.createObjectURL(image)}
                     key={index}
                     width={"8rem"}
                     height={"8rem"}
-                    className="object-center object-cover"
+                    className="object-cover object-center"
                   />
                   <div
-                    className="absolute right-0 top-0 cursor-pointer hover:text-red-400 transition-colors duration-200"
+                    className="absolute right-0 top-0 cursor-pointer transition-colors duration-200 hover:text-red-400"
                     onClick={() =>
                       setImages((prev: any) =>
-                        prev.filter((item: any) => item !== image)
+                        prev.filter((item: any) => item !== image),
                       )
                     }
                   >
@@ -328,7 +326,7 @@ export function MessagingArea({ model }: any) {
           <TextArea
             ref={messageInputRef}
             id="messageInput"
-            className={`w-full bg-gray-700 p-2 text-lg m-0 ${
+            className={`m-0 w-full bg-gray-700 p-2 text-lg ${
               images.length > 0 && "rounded-t-none"
             }`}
             onKeyDown={(e) => {
@@ -346,9 +344,9 @@ export function MessagingArea({ model }: any) {
             placeholder="Type your message here..."
           />
         </div>
-        <div className="py-2 px-1 relative">
+        <div className="relative px-1 py-2">
           <div
-            className="cursor-pointer hover:text-[#6899d9] transition-all duration-100"
+            className="cursor-pointer transition-all duration-100 hover:text-[#6899d9]"
             onClick={() =>
               setTimeout(() => {
                 if (!emojiPickerOpen) {
@@ -360,7 +358,7 @@ export function MessagingArea({ model }: any) {
             <BsEmojiNeutral className="text-2xl" />
           </div>
           {emojiPickerOpen && (
-            <div className="absolute top-0 right-0 translate-x-1 -translate-y-full">
+            <div className="absolute right-0 top-0 -translate-y-full translate-x-1">
               <Picker
                 data={emojiData}
                 onEmojiSelect={(emoji: any) => {
@@ -380,7 +378,7 @@ export function MessagingArea({ model }: any) {
         </div>
         <div
           onClick={sendMessage}
-          className="bg-primary rounded-full py-2 px-3 hover:bg-[#6899d9] transition-all duration-100 cursor-pointer"
+          className="cursor-pointer rounded-full bg-primary px-3 py-2 transition-all duration-100 hover:bg-[#6899d9]"
         >
           <SendOutlined />
         </div>

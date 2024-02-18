@@ -31,3 +31,7 @@ export const formatter = (
 export const getOtherUserId = (myId: string, users: any[]) => {
   return users.filter((item) => item._id !== myId)[0]._id;
 };
+
+export const getOtherUsername = (myUsername: string, users: any[]) => {
+  return users.filter((item) => item.username !== myUsername)[0].username;
+}
