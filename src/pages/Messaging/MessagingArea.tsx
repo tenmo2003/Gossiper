@@ -1,5 +1,6 @@
 import AuthContext from "@/contexts/AuthContext";
 import CurrentRoomContext from "@/contexts/CurrentRoomContext";
+import IsCallerContext from "@/contexts/IsCallerContext";
 import {
   HENTAI_PREDICTION,
   MESSAGE_EVENT,
@@ -7,6 +8,7 @@ import {
   PRIVATE_CHAT_TYPE,
   TEMP_CHAT_PREFIX,
 } from "@/helpers/constants";
+import { getOtherUserId } from "@/helpers/helpers";
 import { getDefaultErrorQueryClient } from "@/helpers/queryClient";
 import service from "@/service/service";
 import { socket } from "@/socket.io/socket";
@@ -18,13 +20,13 @@ import * as tf from "@tensorflow/tfjs";
 import { Image } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { Phone, XCircle } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { BsEmojiNeutral } from "react-icons/bs";
 import { useMediaQuery } from "react-responsive";
 import { toast } from "sonner";
 import ImagePicker from "./Components/ImagePicker";
 import Messages from "./Components/Messages";
-import { getOtherUserId } from "@/helpers/helpers";
+import { Link } from "react-router-dom";
 
 export function MessagingArea({ model }: any) {
   const { user } = React.useContext<any>(AuthContext);
@@ -51,6 +53,8 @@ export function MessagingArea({ model }: any) {
   const messageInputRef = React.useRef<any>();
   const [images, setImages] = useState<any>([]);
   const predictionThreshold = 0.7;
+
+  const { setIsCaller } = useContext(IsCallerContext);
 
   const isDesktopOrLaptop = useMediaQuery({
     query: "(min-width: 1224px)",
@@ -242,15 +246,13 @@ export function MessagingArea({ model }: any) {
       <div className="relative">
         <div className="text-center font-bold text-2xl mb-3">{chatName}</div>
         {!initNewChat && (
-          <Phone
-            className="absolute right-4 top-0 hover:text-blue-400 cursor-pointer"
-            onClick={() =>
-              window.open(
-                "/call/" + getOtherUserId(user._id, currentlyJoinedRoom.users),
-                "_blank"
-              )
-            }
-          />
+          <Link
+            to={`/call/${getOtherUserId(user._id, currentlyJoinedRoom.users)}?isCaller=${true}`}
+            target="_blank"
+            state={{ isCaller: true }}
+          >
+            <Phone className="absolute right-4 top-0 hover:text-blue-400 cursor-pointer" />
+          </Link>
         )}
       </div>
       <div

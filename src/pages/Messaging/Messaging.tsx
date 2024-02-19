@@ -15,6 +15,7 @@ import { useMediaQuery } from "react-responsive";
 import { MessagingArea } from "./MessagingArea";
 import Sidebar from "./Sidebar";
 import service from "@/service/service";
+import CallPopup from "../Call/CallPopup";
 
 export default function Messaging() {
   const { user, setUser } = useContext<any>(AuthContext);
@@ -62,7 +63,11 @@ export default function Messaging() {
     peer.on("call", (call) => {
       setCallIncoming(true);
     });
-  }, []);
+
+    return () => {
+      peer.destroy();
+    };
+  }, [peer]);
 
   useEffect(() => {
     if (!user) return;
@@ -115,6 +120,7 @@ export default function Messaging() {
         )}
         {currentlyJoinedRoom && <MessagingArea model={model} />}
       </div>
+      {callIncoming && <CallPopup />}
     </div>
   );
 }

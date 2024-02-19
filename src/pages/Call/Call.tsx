@@ -1,12 +1,20 @@
+import AuthContext from "@/contexts/AuthContext";
+import CurrentRoomContext from "@/contexts/CurrentRoomContext";
 import InCallContext from "@/contexts/InCallContext";
-import IsCallerContext from "@/contexts/IsCallerContext";
+import { getOtherUserId } from "@/helpers/helpers";
 import { useContext, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
 export default function Call() {
   const { inCall, setInCall } = useContext(InCallContext);
-  const { isCaller } = useContext(IsCallerContext);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const { user } = useContext(AuthContext);
+  const { currentlyJoinedRoom } = useContext(CurrentRoomContext);
+
+  const peer = JSON.parse(sessionStorage.getItem("peer") || "{}");
 
   const callTo = useParams().id;
 
@@ -20,6 +28,8 @@ export default function Call() {
       // video: true,
       audio: true,
     });
+
+    peer?.call(getOtherUserId(user._id, currentlyJoinedRoom.users), media);
 
     // set video element to user webcam
     (document.getElementById("selfVideo")! as HTMLVideoElement).srcObject =
@@ -43,6 +53,8 @@ export default function Call() {
   };
 
   useEffect(() => {
+    const isCaller = searchParams.get("isCaller");
+
     if (isCaller) {
       startCall();
     } else {
