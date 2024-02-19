@@ -46,7 +46,22 @@ export default function Call() {
       audio: true,
     });
 
-    peer?.call(callTo, media);
+    const call = peer?.call(callTo, media);
+
+    call?.on("close", () => {
+      setInCall(false);
+
+      toast("Call ended");
+
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
+    });
+
+    call?.on("stream", (stream) => {
+      (document.getElementById("otherVideo")! as HTMLVideoElement).srcObject =
+        stream;
+    });
 
     // set video element to user webcam
     (document.getElementById("selfVideo")! as HTMLVideoElement).srcObject =
@@ -59,14 +74,37 @@ export default function Call() {
       return;
     }
 
-    setIncomingCall(undefined);
-
     const media = await navigator.mediaDevices.getUserMedia({
       // video: true,
       audio: true,
     });
 
     incomingCall.answer(media);
+
+    incomingCall.on("stream", (stream) => {
+      (document.getElementById("otherVideo")! as HTMLVideoElement).srcObject =
+        stream;
+
+      const audio: HTMLAudioElement = document.getElementById(
+        "audio",
+      ) as HTMLAudioElement;
+
+      audio.srcObject = stream;
+
+      audio.play();
+    });
+
+    incomingCall.on("close", () => {
+      setInCall(false);
+
+      toast("Call ended");
+
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
+
+      setIncomingCall(undefined);
+    });
 
     // set video element to user webcam
     (document.getElementById("selfVideo")! as HTMLVideoElement).srcObject =
@@ -96,7 +134,7 @@ export default function Call() {
       <div className="flex w-full">
         {/* user video */}
         <video
-          className="flex-1 rounded-xl bg-white"
+          className="flex-1 rounded-xl bg-slate-400"
           id="selfVideo"
           autoPlay
           playsInline
@@ -105,13 +143,14 @@ export default function Call() {
 
         {/* other user video */}
         <video
-          className="flex-1 rounded-xl"
+          className="flex-1 rounded-xl bg-slate-400"
           id="otherVideo"
           autoPlay
           playsInline
           muted
         ></video>
       </div>
+      <audio id="audio" className="hidden" controls autoPlay></audio>
     </div>
   );
 }

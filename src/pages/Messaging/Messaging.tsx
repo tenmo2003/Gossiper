@@ -18,6 +18,7 @@ import { MessagingArea } from "./MessagingArea";
 import Sidebar from "./Sidebar";
 import CallPopup from "../Call/CallPopup";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function Messaging() {
   const { user, setUser } = useContext<any>(AuthContext);
@@ -82,6 +83,19 @@ export default function Messaging() {
 
       setIncomingCall(call);
     });
+
+    peer.on("error", (err) => {
+      switch (err.type) {
+        case "browser-incompatible":
+          toast("Your browser is not compatible with our call service.");
+          break;
+        case "peer-unavailable":
+          toast("The user is not available.");
+          break;
+        default:
+          break;
+      }
+    })
   }, [peer]);
 
   const onAccept = () => {
@@ -90,6 +104,7 @@ export default function Messaging() {
 
   const onReject = () => {
     incomingCall.close();
+    setIncomingCall(undefined);
   };
 
   useEffect(() => {
