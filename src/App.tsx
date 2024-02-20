@@ -1,6 +1,6 @@
 import { ConfigProvider } from "antd";
 import { Peer } from "peerjs";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
 import AuthContext from "./contexts/AuthContext";
@@ -12,7 +12,6 @@ import PeerContext from "./contexts/PeerContext";
 import Authenticate from "./pages/Authenticate/Authenticate";
 import Call from "./pages/Call/Call";
 import Messaging from "./pages/Messaging/Messaging";
-import { socket } from "./socket.io/socket";
 
 function App() {
   const [user, setUser] = useState<any>();
@@ -21,17 +20,6 @@ function App() {
   const [isCaller, setIsCaller] = useState<boolean>(false);
   const [peer, setPeer] = useState<Peer>();
   const [incomingCall, setIncomingCall] = useState<any>();
-
-  useEffect(() => {
-    if (!socket.connected) {
-      socket.connect();
-    }
-
-    return () => {
-      socket.disconnect();
-      peer?.disconnect();
-    };
-  }, []);
 
   return (
     <AuthContext.Provider value={{ user, setUser }}>

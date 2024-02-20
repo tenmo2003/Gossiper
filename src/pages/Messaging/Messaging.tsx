@@ -54,6 +54,17 @@ export default function Messaging() {
   };
 
   useEffect(() => {
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    return () => {
+      socket.disconnect();
+      peer?.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
     if (model) {
       return;
     }
