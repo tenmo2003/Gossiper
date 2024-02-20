@@ -20,6 +20,8 @@ export default function Call() {
     setIncomingCall: any;
   }>(IncomingCallContext);
 
+  const isCaller = searchParams.get("isCaller");
+
   const { peer } = useContext<{
     peer: Peer | undefined;
     setPeer: any;
@@ -28,6 +30,12 @@ export default function Call() {
   useEffect(() => {
     return () => {
       setInCall(false);
+
+      if (isCaller === "false") {
+        incomingCall?.close();
+      }
+
+      setIncomingCall(undefined);
     };
   }, []);
 
@@ -124,8 +132,6 @@ export default function Call() {
     }
 
     setInCall(true);
-
-    const isCaller = searchParams.get("isCaller");
 
     if (isCaller === "true") {
       startCall();

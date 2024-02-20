@@ -14,11 +14,11 @@ import { useContext, useEffect, useState } from "react";
 import Drawer from "react-modern-drawer";
 import "react-modern-drawer/dist/index.css";
 import { useMediaQuery } from "react-responsive";
-import { MessagingArea } from "./MessagingArea";
-import Sidebar from "./Sidebar";
-import CallPopup from "../Call/CallPopup";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import CallPopup from "../Call/CallPopup";
+import { MessagingArea } from "./MessagingArea";
+import Sidebar from "./Sidebar";
 
 export default function Messaging() {
   const { user, setUser } = useContext<any>(AuthContext);
@@ -33,7 +33,7 @@ export default function Messaging() {
 
   const [sidebarOpen, setSidebarOpen] = useState<any>(false);
 
-  const [model, setModel] = useState<any>(null);
+  const [model, setModel] = useState<any>();
 
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -54,6 +54,9 @@ export default function Messaging() {
   };
 
   useEffect(() => {
+    if (model) {
+      return;
+    }
     setLoading(true);
     tf.ready().then(() => {
       loadModel();
@@ -91,11 +94,14 @@ export default function Messaging() {
           break;
         case "peer-unavailable":
           toast("The user is not available.");
+          setTimeout(() => {
+            navigate("/");
+          }, 2000);
           break;
         default:
           break;
       }
-    })
+    });
   }, [peer]);
 
   const onAccept = () => {
