@@ -42,7 +42,7 @@ export default function Call() {
     }
 
     const media = await navigator.mediaDevices.getUserMedia({
-      // video: true,
+      video: true,
       audio: true,
     });
 
@@ -61,6 +61,14 @@ export default function Call() {
     call?.on("stream", (stream) => {
       (document.getElementById("otherVideo")! as HTMLVideoElement).srcObject =
         stream;
+
+      const audio: HTMLAudioElement = document.getElementById(
+        "audio",
+      ) as HTMLAudioElement;
+
+      audio.srcObject = stream;
+
+      audio.play();
     });
 
     // set video element to user webcam
@@ -75,7 +83,7 @@ export default function Call() {
     }
 
     const media = await navigator.mediaDevices.getUserMedia({
-      // video: true,
+      video: true,
       audio: true,
     });
 
@@ -90,8 +98,6 @@ export default function Call() {
       ) as HTMLAudioElement;
 
       audio.srcObject = stream;
-
-      audio.play();
     });
 
     incomingCall.on("close", () => {
@@ -121,7 +127,7 @@ export default function Call() {
 
     const isCaller = searchParams.get("isCaller");
 
-    if (isCaller) {
+    if (isCaller === "true") {
       startCall();
     } else {
       joinCall();
@@ -129,9 +135,8 @@ export default function Call() {
   }, []);
 
   return (
-    <div className="h-screen w-full bg-mainBackground">
-      <div className="text-3xl font-bold text-white">Call</div>
-      <div className="flex w-full">
+    <div className="flex h-screen w-full items-center justify-center bg-mainBackground">
+      <div className="flex w-full gap-5 px-10">
         {/* user video */}
         <video
           className="flex-1 rounded-xl bg-slate-400"
