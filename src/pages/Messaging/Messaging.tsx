@@ -48,9 +48,15 @@ export default function Messaging() {
   }>(IncomingCallContext);
 
   const loadModel = async () => {
-    const model = await nsfwjs.load();
-    setModel(model);
-    setLoading(false);
+    try {
+      const model = await nsfwjs.load();
+      setModel(model);
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      toast("Failed to load nsfw model");
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

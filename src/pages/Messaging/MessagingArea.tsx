@@ -47,7 +47,8 @@ export function MessagingArea({ model }: any) {
   const [noMoreData, setNoMoreData] = useState(false);
   const messageQuerySize = 20;
 
-  const [initNewChat, setInitNewChat] = useState(false);
+  const [isNewChat, setIsNewChat] = useState(false);
+  const [initializingNewChat, setInitializingNewChat] = useState(true);
 
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
 
@@ -66,6 +67,7 @@ export function MessagingArea({ model }: any) {
       setChatName(currentlyJoinedRoom.tmpWith.fullName);
       setMessages([]);
       setImages([]);
+      setIsNewChat(true);
       return;
     }
 
@@ -87,7 +89,7 @@ export function MessagingArea({ model }: any) {
       map.set(user._id, user);
     });
 
-    setInitNewChat(false);
+    setInitializingNewChat(false);
 
     setUsersMap(map);
 
@@ -149,7 +151,7 @@ export function MessagingArea({ model }: any) {
       chatId: currentlyJoinedRoom._id,
     });
     if (currentlyJoinedRoom._id?.startsWith(TEMP_CHAT_PREFIX)) {
-      setInitNewChat(true);
+      setInitializingNewChat(true);
     }
     setCurrentInput("");
     setImages([]);
@@ -244,7 +246,7 @@ export function MessagingArea({ model }: any) {
     <>
       <div className="relative">
         <div className="mb-3 text-center text-2xl font-bold">{chatName}</div>
-        {!initNewChat && (
+        {!isNewChat && !initializingNewChat && (
           <Link
             to={`/call/${getOtherUserId(user._id, currentlyJoinedRoom.users)}?isCaller=${true}`}
             state={{ isCaller: true }}
@@ -338,7 +340,6 @@ export function MessagingArea({ model }: any) {
             onChange={(e) => {
               setCurrentInput(e.target.value);
             }}
-            disabled={initNewChat}
             value={currentInput}
             autoSize={{ maxRows: 5 }}
             placeholder="Type your message here..."
