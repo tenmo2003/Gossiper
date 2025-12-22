@@ -258,7 +258,7 @@ export function MessagingArea({ model }: any) {
       <div
         ref={messageContainerRef}
         id="messageContainer"
-        className="mb-2 flex flex-1 flex-col-reverse gap-1 overflow-auto px-2 py-1"
+        className="mb-2 flex flex-1 flex-col-reverse gap-1 overflow-y-auto px-2 py-1"
         onScroll={(e: any) => {
           // check if user is 90% to top
           if (
@@ -288,8 +288,13 @@ export function MessagingArea({ model }: any) {
           loading={loading}
         />
       </div>
+
       <div
-        className="flex w-full items-end gap-2 pr-3"
+        className={`grid w-full items-end gap-2 pr-3 ${
+          !currentlyJoinedRoom.tmpWith
+            ? "grid-cols-[auto_1fr_auto_auto]" // Picker + Input + Emoji + Send
+            : "grid-cols-[1fr_auto_auto]" // Input + Emoji + Send
+        }`}
         onDrop={(e) => {
           e.preventDefault();
           if (e.dataTransfer.files[0].type.startsWith("image")) {
@@ -299,9 +304,10 @@ export function MessagingArea({ model }: any) {
         onDragOver={(e) => e.preventDefault()}
       >
         {!currentlyJoinedRoom.tmpWith && <ImagePicker setImages={setImages} />}
-        <div className="relative flex-1">
+
+        <div className="relative w-full min-w-0">
           {images.length > 0 && (
-            <div className="flex gap-2 overflow-auto rounded-t-[4px] bg-gray-700 p-2 pb-0">
+            <div className="flex gap-2 overflow-x-auto rounded-t-[4px] bg-gray-700 p-2 pb-0">
               {images.map((image: any, index: number) => (
                 <div className="relative flex-shrink-0" key={index}>
                   <Image
@@ -345,6 +351,7 @@ export function MessagingArea({ model }: any) {
             placeholder="Type your message here..."
           />
         </div>
+
         <div className="relative px-1 py-2">
           <div
             className="cursor-pointer transition-all duration-100 hover:text-[#6899d9]"

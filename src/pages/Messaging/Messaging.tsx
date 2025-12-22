@@ -149,7 +149,7 @@ export default function Messaging() {
   }, [isDesktopOrLaptop]);
 
   return (
-    <div className="flex h-screen w-screen overflow-auto bg-mainBackground text-white">
+    <div className="flex h-screen w-screen bg-mainBackground text-white">
       {loading && <Loading />}
       {isDesktopOrLaptop ? (
         <div className="w-[30rem] flex-shrink-0">
